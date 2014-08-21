@@ -1,0 +1,31 @@
+{% include "header.html" %}
+    <main>
+    <center>
+   	  <h1>Update Community</h1>
+      <form method="post">
+      	  <div class="error">{{error}}</div>
+          <table width="765" border="0">
+            <tr>
+              <td width="166" height="34">Community</td>
+              <td width="518">
+                <input type="text" readonly="readonly" name = "community_name" id = "community_name" class = "textbox" value="{{community_name}}"/>
+              </td>
+              <td width="23">&nbsp;</td>
+            </tr>
+            <tr>
+              <td width="166" height="34">Description</td>
+              <td width="518">
+                <textarea name="description" id="description"  class="textarea" cols="60" rows="10" >{{description}}</textarea>
+              </td>
+              <td width="23">&nbsp;</td>
+            </tr>
+            <tr>
+              <td height="36">&nbsp;</td>
+              <td><center><input type="submit" name="submit" id="submit" class="myButton" /></center></td>
+              <td>&nbsp;</td>
+            </tr>
+          </table>
+      </form>
+      </center>
+      <p>&nbsp;</p>
+    </main>

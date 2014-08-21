@@ -1,0 +1,80 @@
+{% include "header.html" %}
+    <main>
+    <center>
+   	  <h1>New Event</h1>
+      <form method="post">
+      	  <div class="error">{{error}}</div>
+          <table width="765" border="0">
+            <tr>
+              <td width="166" height="34">Events</td>
+              <td width="518">
+                <textarea name="event_message" id="event_message" cols="60" rows="3" class="textarea">{{event_message}}</textarea>
+              </td>
+              <td width="23">&nbsp;</td>
+            </tr>
+            <tr>
+              <td height="39">Type</td>
+              <td>
+                <select name="message_type" id="message_type" class="textbox">
+                  	<option value="">--Select--</option>
+                  	<option value="EVENT">EVENT</option>
+                    <option value="INFO">INFORMATION</option>
+                </select>
+              </td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td height="39">Venue</td>
+              <td>
+                <select name="venue" id="venue" class="textbox">
+                  	<option value="">--Select--</option>
+                  	<option value="SAL">SAL</option>
+                    <option value="BOV">BOV</option>
+                    <option value="VKC">VKC</option>
+                    <option value="GFS">GFS</option>
+                    <option value="SGM">SGM</option>
+                    <option value="STU">STU</option>
+                  </select>
+                  <label for="room">Room</label>
+                  <input type="text" name="room" id="room" value="{{room}}" class="textbox" size="10" />
+              </td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td height="37">Date</td>
+              <td><input type="datetime-local" name="date" id="date" value="{{date}}" class="textbox" /></td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td width="166" height="34">Community</td>
+              <td width="518">
+                <input type="text" name="community_name" id="community_name" value="{{community_name}}" class="textbox" />
+              </td>
+              <td width="23">&nbsp;</td>
+            </tr>
+            <tr>
+              <td height="33">Category</td>
+              <td>
+                  <input type="radio" name="category" value="Seminar" checked />
+                  <label>Seminar</label>
+                  <input type="radio" name="category" value="Conference" />
+                  <label>Conference</label>
+                  <input type="radio" name="category" value="Entertainment" />
+                  <label>Entertainment</label>
+                  <input type="radio" name="category" value="Career Opportunities" />
+                  <label>Career Opportunities</label>
+              </td>
+              <td>&nbsp;</td>
+            </tr>
+            <tr>
+              <td height="36">&nbsp;</td>
+              <td><center><input type="submit" name="submit" id="submit" class="myButton" /></center></td>
+              <td>&nbsp;</td>
+            </tr>
+          </table>
+      </form>
+      </center>
+      <p>&nbsp;</p>
+    </main>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% include "header.html" %}
+    <main>
+    <center>
+   	  <h1>Events</h1>
+      <form method="post">
+      	  <div class="error">{{error}}</div>
+          <table width="765" border="1">
+            <thead>
+              <tr>
+                <th>Admin ID</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Event</th>
+                <th>Venue</th>
+                <th>Update</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+          	{% for event in events %}
+		      <tr>
+		      	<td align="center">{{ event.admin_id }}</td>
+		      	<td align="center">{{ event.category }}</td>
+		      	<td align="center">{{ event.date }}</td>
+		      	<td align="center">{{ event.event_message }}</td>
+		      	<td align="center">{{ event.venue }}{{ event.room }}</td>
+		      	<td align="center"><a href="/updateevent?q={{event.key().id()}}">Update</a></td>
+		      	<td align="center"><a href="/deleteevent?q={{event.key().id()}}">Delete</a></td>
+		      </tr>
+		     {% endfor %}
+		     </tbody> 
+          </table>
+      </form>
+      </center>
+      <p>&nbsp;</p>
+    </main>

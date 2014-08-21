@@ -1,0 +1,29 @@
+@charset "utf-8";
+/* CSS Document */
+
+footer {
+    height: 100px;
+	float:none;
+    background: #EDB51A; /* Old browsers */
+  background: -moz-linear-gradient(top,  
+    #EDB51A 0%, #F7BD0C 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, 
+    color-stop(0%,#EDB51A), 
+    color-stop(100%,#F7BD0C)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  
+    #EDB51A 0%,#F7BD0C 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  
+    #EDB51A 0%,#F7BD0C 100%); /* Opera 11.10+ */
+  background: linear-gradient(to bottom,  
+    #EDB51A 0%,#F7BD0C 100%); /* W3C, IE10+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( 
+    startColorstr='#EDB51A', 
+    endColorstr='#F7BD0C',GradientType=0 ); /* IE6-9 */
+    border-top: 1px solid #DDD;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    -moz-border-radius-bottomright: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}

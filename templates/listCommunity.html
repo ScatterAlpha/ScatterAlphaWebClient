@@ -1,0 +1,28 @@
+{% include "header.html" %}
+    <main>
+    <center>
+   	  <h1>Community</h1>
+      <form method="post">
+      	  <div class="error">{{error}}</div>
+          <table width="765" border="1">
+            <thead>
+              <tr>
+                <th>Community</th>
+                <th>Description</th>
+                <th>Update</th>
+              </tr>
+            </thead>
+            <tbody>
+          	{% for community in communities %}
+		      <tr>
+		      	<td align="center">{{ community.community_name }}</td>
+		      	<td align="center">{{ community.content }}</td>
+		      	<td align="center"><a href = "/updateCommunity?q={{community.key().id()}}">Update</a></td>
+		      <tr>
+		     {% endfor %}
+		     </tbody> 
+          </table>
+      </form>
+      </center>
+      <p>&nbsp;</p>
+    </main>
