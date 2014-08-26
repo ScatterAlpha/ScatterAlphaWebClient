@@ -1,0 +1,39 @@
+{% include "header.html" %}
+<main>
+<center>
+	<h1>Event Type List</h1>
+	<form method="post">
+		<div class="error">{{error}}</div>
+		<table width="765" border="1">
+			<thead>
+				<tr>
+					<th>Event Type</th>
+					<th>Delete</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for type in list %}
+				<tr>
+					<td align="center">{{ type.EventTypeName }}</td>
+					<td align="center"><a
+						href="/deleteEventType?q={{type.key().id()}}">Delete</a></td>
+					<td></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		<table>
+			<tr>
+			<tr>
+				<td align="center">&nbsp;</td>
+		    	<td align="center"><input type="button" name="addET" id="addET" onclick="window.location.href = 'http://localhost:8080/addEventType';" value="Add Event Type"
+					class="myButton" /></td>
+		    	<td>&nbsp;</td>
+		      </tr>
+          </tr>
+			
+          </table>
+      </form>
+      </center>
+      <p>&nbsp;</p>
+    </main>

@@ -14,6 +14,7 @@
                 <th>Venue</th>
                 <th>Update</th>
                 <th>Delete</th>
+                <th>RSVP</th>
               </tr>
             </thead>
             <tbody>
@@ -26,6 +27,7 @@
 		      	<td align="center">{{ event.venue }}{{ event.room }}</td>
 		      	<td align="center"><a href="/updateevent?q={{event.key().id()}}">Update</a></td>
 		      	<td align="center"><a href="/deleteevent?q={{event.key().id()}}">Delete</a></td>
+		      	<td align="center"><a href="/addRsvp?event_id={{event.key().id()}}&user_id={{uid}}">RSVP</a></td>
 		      </tr>
 		     {% endfor %}
 		     </tbody> 

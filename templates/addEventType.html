@@ -1,0 +1,24 @@
+{% include "header.html" %}
+    <main>
+    <center>
+   	  <h1>Event Type</h1>
+      <form method="post">
+      	  <div class="error">{{error}}</div>
+      	  <table width="765" border="0">
+      	  	<tr>
+      	  	<td width="166" height="34">Event Name</td>
+          	<td>
+            	<input type="text" name="eventTypeList" id="eventTypeList" class="textbox" value="{{eventTypeList}}" />
+          	</td>
+          	<td width="23">&nbsp;</td>
+          	</tr>
+          	<tr>
+              <td height="36">&nbsp;</td>
+              <td><center><input type="submit" name="submit" id="submit" class="myButton" /></center></td>
+              <td>&nbsp;</td>
+            </tr>
+          </table>
+      </form>
+      </center>
+      <p>&nbsp;</p>
+    </main>
