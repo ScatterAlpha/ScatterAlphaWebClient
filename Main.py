@@ -182,7 +182,7 @@ class Follow(db.Model):
     def follow_entry(cls, user_id, community_id):
         return Follow(parent = follow_key(),
                     user_id = user_id,
-                    event_id = community_id)    
+                    community_id = community_id)    
     
     @classmethod
     def by_User_Community(cls, user_id, community_id):
@@ -192,6 +192,19 @@ class Follow(db.Model):
         else:
             return False                
                 
+    @classmethod
+    def search_by_userId_communityId(cls,user_id,community_id):            
+        return  Follow.all().filter("user_id = ", user_id).filter("community_id = ", community_id).get()
+    
+    @classmethod
+    def count_by_Community(cls, community_id):
+        c = Follow.all().filter("community_id = ", community_id).count(10000)
+        return c
+    
+    @classmethod
+    def list_by_Community(cls, community_id):
+        c = Follow.all().filter("community_id = ", community_id).fetch(10000)
+        return c
                 
 def community_key(group = 'default'):
     return db.Key.from_path('community', group)
@@ -857,33 +870,49 @@ class DeleteRsvp(BlogHandler):
 class CreateFollow(BlogHandler):
     def get(self):
         self.render("listcommunity.html")
-        '''
         self.response.headers['Content-Type'] = 'application/json'
-        uid = int(self.request.get('user_id'))
         cid = int(self.request.get('community_id'))
+        logging.info(cid)
+        uid = int(self.request.get('user_id'))
+        logging.info(uid)
         if not Follow.by_User_Community(uid, cid):
             r = Follow.follow_entry(uid, cid)
             r.put()              
             obj = {
                 'Result': "True"
-              }
+                }
         else:
             obj = {
                 'Result': "False"
               }             
         self.response.out.write(json.dumps(obj))
-        '''
-        uid = int(self.request.get('user_id'))
-        logging.info(uid)
             
     def post(self):
         self.redirect('/login')
 
-                    
-class NumberOfAttendees(BlogHandler):
+class DeleteFollow(BlogHandler):
     def get(self):
-        eid = int(self.request.get('event_id'))
-        res = Rsvp.count_by_Event(eid)
+        if self.user:
+            cid = int(self.request.get('community_id'))
+            logging.info(cid)
+            uid = int(self.request.get('user_id'))
+            logging.info(uid)
+            r = Follow.search_by_userId_communityId(uid, cid)
+            logging.info(r)
+            if not r:
+                db.delete(r)
+                self.redirect("/community")
+        else:   
+            self.redirect("/login")
+
+    def post(self):
+        if not self.user:
+            self.redirect('/login')
+
+class NumberOfFollowers(BlogHandler):
+    def get(self):
+        cid = int(self.request.get('community_id'))
+        res = Follow.count_by_Community(cid)
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
             'Number': res
@@ -896,11 +925,11 @@ class NumberOfAttendees(BlogHandler):
             'Number': -1 
         }
         self.response.out.write(json.dumps(obj))
-        
-class ListOfAttendees(BlogHandler):
+
+class ListOfFollowers(BlogHandler):
     def get(self):
-        eid = int(self.request.get('event_id'))
-        res = Rsvp.list_by_Event(eid)
+        cid = int(self.request.get('community_id'))
+        res = Follow.list_by_Community(cid)
         lst = []
         for r in res:
             lst.append(User.by_id(r.user_id).name)
@@ -978,8 +1007,11 @@ app = webapp2.WSGIApplication([('/', Login),
                                ('/addRsvp', AddRsvp),
                                ('/deleteRsvp', DeleteRsvp),
                                ('/createFollow',CreateFollow),
+                               ('/deleteFollow',DeleteFollow), 
                                ('/getNumberOfAttendees', NumberOfAttendees),
                                ('/getListOfAttendees', ListOfAttendees),
+                               ('/getNumberOfFollowers', NumberOfFollowers),
+                               ('/getListOfFollowers', ListOfFollowers),
                                ('/about', About),
                                ('/addEventType', AddEventType),
                                ('/listEventType', ListEventType),
