@@ -909,6 +909,43 @@ class DeleteFollow(BlogHandler):
         if not self.user:
             self.redirect('/login')
 
+class NumberOfAttendees(BlogHandler):
+   def get(self):
+       eid = int(self.request.get('event_id'))
+       res = Rsvp.count_by_Event(eid)
+       self.response.headers['Content-Type'] = 'application/json'   
+       obj = {
+           'Number': res
+         } 
+       self.response.out.write(json.dumps(obj))
+                   
+   def post(self):
+       self.response.headers['Content-Type'] = 'application/json'   
+       obj = {
+           'Number': -1 
+       }
+       self.response.out.write(json.dumps(obj))
+       
+class ListOfAttendees(BlogHandler):
+   def get(self):
+       eid = int(self.request.get('event_id'))
+       res = Rsvp.list_by_Event(eid)
+       lst = []
+       for r in res:
+           lst.append(User.by_id(r.user_id).name)
+       self.response.headers['Content-Type'] = 'application/json'   
+       obj = {
+           'User': lst
+         } 
+       self.response.out.write(json.dumps(obj))
+                   
+   def post(self):
+       self.response.headers['Content-Type'] = 'application/json'   
+       obj = {
+           'User': ""
+       }
+       self.response.out.write(json.dumps(obj))
+
 class NumberOfFollowers(BlogHandler):
     def get(self):
         cid = int(self.request.get('community_id'))
