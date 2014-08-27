@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import random
 import hashlib
@@ -140,31 +141,29 @@ class Rsvp(db.Model):
     event_id = db.IntegerProperty(required = True)
     
     @classmethod
-    def search_by_ID(cls, uid):
-        return Rsvp.get_by_id(uid, parent = community_key())
+    def by_id(cls, uid):
+        return Rsvp.get_by_id(uid, parent = rsvp_key())
         
     @classmethod
-    def by_User(cls, user_id):
+    def by_user(cls, user_id):
         c = Rsvp.all().filter("user_id = ", user_id).get()
         return c
     
     @classmethod
-    def count_by_Event(cls, event_id):
+    def by_user_event(cls, user_id, event_id):
+        c = Rsvp.all().filter("user_id = ", user_id).filter("event_id = ", event_id).get()
+        return c
+    
+    @classmethod
+    def count_by_event(cls, event_id):
         c = Rsvp.all().filter("event_id = ", event_id).count(10000)
         return c
 
     @classmethod
-    def list_by_Event(cls, event_id):
+    def list_by_event(cls, event_id):
         c = Rsvp.all().filter("event_id = ", event_id).fetch(10000)
         return c
         
-    @classmethod
-    def by_User_Event(cls, user_id, event_id):
-        c = Rsvp.all().filter("user_id = ", user_id).filter("event_id = ", event_id).get()
-        if c:
-            return True
-        else:
-            return False
     
     @classmethod
     def rsvp_entry(cls, user_id, event_id):
@@ -183,30 +182,16 @@ class Follow(db.Model):
     def follow_entry(cls, user_id, community_id):
         return Follow(parent = follow_key(),
                     user_id = user_id,
-                    community_id = community_id)    
+                    event_id = community_id)    
     
     @classmethod
     def by_User_Community(cls, user_id, community_id):
         c = Follow.all().filter("user_id = ", user_id).filter("community_id = ", community_id).get()
-        logging.info(c)
         if c:
             return True
         else:
             return False                
                 
-    @classmethod
-    def search_by_userId_communityId(cls,user_id,community_id):            
-        return  Follow.all().filter("user_id = ", user_id).filter("community_id = ", community_id).get()
-    
-    @classmethod
-    def count_by_Community(cls, community_id):
-        c = Follow.all().filter("community_id = ", community_id).count(10000)
-        return c
-    
-    @classmethod
-    def list_by_Community(cls, community_id):
-        c = Follow.all().filter("community_id = ", community_id).fetch(10000)
-        return c
                 
 def community_key(group = 'default'):
     return db.Key.from_path('community', group)
@@ -248,6 +233,24 @@ class Community(db.Model):
         
 def events_key(group = 'default'):
     return db.Key.from_path('events', group)
+        
+        
+class EventTypeList(db.Model):
+    EventTypeName = db.StringProperty(required = True)
+    
+    @classmethod
+    def by_id(cls, uid):
+        return EventTypeList.get_by_id(uid, parent = events_key())
+    
+    @classmethod
+    def all_data(cls):
+        return EventTypeList.all()
+    
+    @classmethod
+    def event_type_list_entry(cls, eventType):
+        return EventTypeList(parent = events_key(),
+                        EventTypeName = eventType)
+
         
 class Event(db.Model):
     event_message = db.StringProperty(required = True)
@@ -350,10 +353,10 @@ class CreateCommunity(BlogHandler):
 class UpdateCommunity(BlogHandler):
     def get(self):
         if self.user:
-            cid = int(self.request.get('q'))
-            comm_name = Community.search_by_ID(cid)
-            logging.info(comm_name.community_name)
-            self.render("updateCommunity.html", community_name = comm_name.community_name, description = comm_name.content)
+            community_id = int(self.request.get('community_id'))
+            community_name = Community.search_by_ID(community_id)
+            logging.info(community_name.community_name)
+            self.render("updateCommunity.html", community_name = community_name.community_name, description = community_name.content)
         else:
             self.redirect("/login")
 
@@ -361,9 +364,9 @@ class UpdateCommunity(BlogHandler):
         if not self.user:
             self.redirect('/login')
         else:
-            name = self.request.get("community_name")
+            community_name = self.request.get("community_name")
             content = self.request.get("description")
-            c = Community.updateDescription(name, content)
+            c = Community.updateDescription(community_name, content)
             self.redirect("/community")
 
 class ListCommunity(BlogHandler):
@@ -409,45 +412,49 @@ class UserListCommunity(BlogHandler):
 
 class Signup(BlogHandler):
     def get(self):
-        self.render("signup-form.html")
+        self.render("signupform.html")
 
     def post(self):
-        have_error = False
-        self.username = self.request.get('username')
-        self.password = self.request.get('password')
-        self.verify = self.request.get('verify')
-        self.name = self.request.get('name')
-        self.permission = self.request.get('permission')
-
-        params = dict(username = self.username,
-                      name = self.name)
-        
-        u = User.by_username(self.username)
-        if u:
-            params['error_username'] = 'That user already exists.';
-            have_error = True;
-
-        if not valid_username(self.username):
-            params['error_username'] = "That's not a valid username."
-            have_error = True
-
-        if not valid_password(self.password):
-            params['error_password'] = "That wasn't a valid password."
-            have_error = True
-        elif self.password != self.verify:
-            params['error_verify'] = "Your passwords didn't match."
-            have_error = True
-
-        if not valid_name(self.name):
-            params['error_name'] = "That's not a valid name."
-            have_error = True
+        try:
+            have_error = False
+            self.username = self.request.get('username')
+            self.password = self.request.get('password')
+            self.verify = self.request.get('verify')
+            self.name = self.request.get('name')
+            self.permission = self.request.get('permission')
+    
+            params = dict(username = self.username,
+                          name = self.name)
             
-        if have_error:
-            self.render('signup-form.html', **params)
-        else:
-            u = User.register(self.username, self.password, self.name, self.permission)
-            u.put()
-            self.redirect('/listevent');
+            u = User.by_username(self.username)
+            if u:
+                params['error_username'] = 'That user already exists.';
+                have_error = True;
+    
+            if not valid_username(self.username):
+                params['error_username'] = "That's not a valid username."
+                have_error = True
+    
+            if not valid_password(self.password):
+                params['error_password'] = "That wasn't a valid password."
+                have_error = True
+            elif self.password != self.verify:
+                params['error_verify'] = "Your passwords didn't match."
+                have_error = True
+    
+            if not valid_name(self.name):
+                params['error_name'] = "That's not a valid name."
+                have_error = True
+                
+            if have_error:
+                self.render('signupform.html', **params)
+            else:
+                u = User.register(self.username, self.password, self.name, self.permission)
+                u.put()
+                self.redirect('/listEvent');
+        except:
+            e = sys.exc_info()[0]
+            self.redirect("/signup", error = e)
             
 class UserSignup(BlogHandler):
     def get(self):
@@ -459,57 +466,60 @@ class UserSignup(BlogHandler):
         self.response.out.write(json.dumps(obj))
 
     def post(self):
-        have_error = False
-        dictlist = []
-        self.username = self.request.get('username')
-        self.password = self.request.get('password')
-        self.verify = self.request.get('verify')
-        self.name = self.request.get('name')
-        self.permission = self.request.get('permission')
-
-        params = dict(username = self.username,
-                      name = self.name)
-        
-        u = User.by_username(self.username)
-        if u:
-            params['error_username'] = 'That user already exists.';
-            have_error = True;
-
-        if not valid_username(self.username):
-            params['error_username'] = "That's not a valid username."
-            have_error = True
-
-        if not valid_password(self.password):
-            params['error_password'] = "That wasn't a valid password."
-            have_error = True
-        elif self.password != self.verify:
-            params['error_verify'] = "Your passwords didn't match."
-            have_error = True
-
-        if not valid_name(self.name):
-            params['error_name'] = "That's not a valid name."
-            have_error = True
+        try:
+            have_error = False
+            dictlist = []
+            self.username = self.request.get('username')
+            self.password = self.request.get('password')
+            self.verify = self.request.get('verify')
+            self.name = self.request.get('name')
+            self.permission = self.request.get('permission')
+    
+            params = dict(username = self.username,
+                          name = self.name)
             
-        if have_error:
-            for key, value in params.iteritems():
-                temp = value
-                dictlist.append(temp)
-            self.response.headers['Content-Type'] = 'application/json'   
-            obj = {
-                'Result': "False",
-                'Error':dictlist
-            } 
-            self.response.out.write(json.dumps(obj))
-        else:
-            u = User.register(self.username, self.password, self.name, self.permission)
-            u.put()
-            self.response.headers['Content-Type'] = 'application/json'   
-            obj = {
-                'Result': "True",
-                'Error':""
-              } 
-            self.response.out.write(json.dumps(obj))
-            
+            u = User.by_username(self.username)
+            if u:
+                params['error_username'] = 'That user already exists.';
+                have_error = True;
+    
+            if not valid_username(self.username):
+                params['error_username'] = "That's not a valid username."
+                have_error = True
+    
+            if not valid_password(self.password):
+                params['error_password'] = "That wasn't a valid password."
+                have_error = True
+            elif self.password != self.verify:
+                params['error_verify'] = "Your passwords didn't match."
+                have_error = True
+    
+            if not valid_name(self.name):
+                params['error_name'] = "That's not a valid name."
+                have_error = True
+                
+            if have_error:
+                for key, value in params.iteritems():
+                    temp = value
+                    dictlist.append(temp)
+                self.response.headers['Content-Type'] = 'application/json'   
+                obj = {
+                    'Result': "False",
+                    'Error':dictlist
+                } 
+                self.response.out.write(json.dumps(obj))
+            else:
+                u = User.register(self.username, self.password, self.name, self.permission)
+                u.put()
+                self.response.headers['Content-Type'] = 'application/json'   
+                obj = {
+                    'Result': "True",
+                    'Error':""
+                  } 
+                self.response.out.write(json.dumps(obj))
+        except:
+            e = sys.exc_info()[0]
+            self.redirect("/userSignup", error = e)
             
 class UpdatePassword(BlogHandler):
     def get(self):
@@ -545,7 +555,7 @@ class UpdatePassword(BlogHandler):
 
 class Login(BlogHandler):
     def get(self):
-        self.render('login-form.html')
+        self.render('loginform.html')
 
     def post(self):
         username = self.request.get('username')
@@ -553,10 +563,10 @@ class Login(BlogHandler):
         u = User.login(username, password)
         if u:
             self.login(u)
-            self.redirect('/listevent')
+            self.redirect('/listEvent')
         else:
             msg = 'Invalid login'
-            self.render('login-form.html', error = msg)
+            self.render('loginform.html', error = msg)
             
 class UserLogin(BlogHandler):
     def get(self):
@@ -615,44 +625,46 @@ class AddEvent(BlogHandler):
     def post(self):
         if not self.user:
             self.redirect('/login')
-        
-        event_msg = self.request.get('event_message')
-        msg_type = self.request.get('message_type')
-        venue = self.request.get('venue')
-        room = self.request.get('room')
-        dt = self.request.get('date')
-        community_name = self.request.get('community_name')
-        category = self.request.get('category')
-        admin_id = self.user.key().id()
-        date = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M')
-        community_id = int(Community.by_Name(community_name))
-        
-
-
-
-
-
-
-
-
-
-        if event_msg and msg_type and venue and room and date and community_name and category and admin_id:
-            p = Event.event_entry(event_msg,msg_type,venue,room,date,community_id,category,admin_id)
-            p.put()
-            self.redirect('/listevent')
         else:
-            error = "Please fill all the fields!!"
-            self.render("success.html",  event_message = event_msg, message_type = msg_type, venue = venue, room = room, date = date, community_id = community_id, category = category, admin_id = admin_id, error=error)
+            try:
+                event_msg = self.request.get('event_message')
+                msg_type = self.request.get('message_type')
+                venue = self.request.get('venue')
+                room = self.request.get('room')
+                dt = self.request.get('date')
+                community_name = self.request.get('community_name')
+                category = self.request.get('category')
+                admin_id = self.user.key().id()
+                date = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M')
+                community_id = int(Community.by_Name(community_name))
+                
+        
+                if event_msg and msg_type and venue and room and date and community_name and category and admin_id:
+                    p = Event.event_entry(event_msg,msg_type,venue,room,date,community_id,category,admin_id)
+                    p.put()
+                    self.redirect('/listEvent')
+                else:
+                    error = "Please fill all the fields!!"
+                    self.render("success.html",  event_message = event_msg, message_type = msg_type, venue = venue, room = room, date = date, community_id = community_id, category = category, admin_id = admin_id, error=error)
+            except:
+                e = sys.exc_info()[0]
+                self.redirect("/listEvent", error = e)
+                
 
 class DeleteEvent(BlogHandler):
     def get(self):
-        if self.user:
-            cid = int(self.request.get('q'))
-            event = Event.by_id(cid)
-            db.delete(event)
-            self.redirect("/listevent")
-        else:   
-            self.redirect("/login")
+        try:
+            if self.user:
+                event_id = int(self.request.get('event_id'))
+                event = Event.by_id(event_id)
+                db.delete(event)
+                self.redirect("/listEvent")
+            else:   
+                self.redirect("/login")
+        except:
+            e = sys.exc_info()[0]
+            error = e
+            self.redirect("/listEvent", error = error)
 
     def post(self):
         if not self.user:
@@ -664,7 +676,7 @@ class ListEvents(BlogHandler):
         if self.user:
             logging.info(self.user.username)
             events = Event.all()
-            self.render("listevents.html", events = events)
+            self.render("listevents.html", events = events, user_id=self.user.key().id())
         else:
             self.redirect("/login")
 
@@ -674,116 +686,103 @@ class ListEvents(BlogHandler):
             
 class UserListEvents(BlogHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-                'Result': "Invalid Request",
-                'Error':""
-              } 
-        self.response.out.write(json.dumps(obj))
+        try:
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
+                    'Result': "Invalid Request",
+                    'Error':""
+                  } 
+            self.response.out.write(json.dumps(obj))
+        except:
+            e = sys.exc_info()[0]
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
+                    'Result': "Exception",
+                    'Error':e
+                  } 
+            self.response.out.write(json.dumps(obj))
+            
 
     def post(self):
-        events = Event.all()
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = []
-        for e in events:
-            obj.append({
-                    'id':str(e.key().id()),
-                    'admin_id': str(e.admin_id),
-                    'category': str(e.category),
-                    'date': str(e.date),
-                    'event_message':str(e.event_message),
-                    'venue':str(e.venue)+str(e.room)
-            })        
-        self.response.out.write(json.dumps(obj))
+        try:
+            events = Event.all()
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = []
+            for e in events:
+                obj.append({
+                        'id':str(e.key().id()),
+                        'admin_id': str(e.admin_id),
+                        'category': str(e.category),
+                        'date': str(e.date),
+                        'event_message':str(e.event_message),
+                        'venue':str(e.venue)+str(e.room)
+                })        
+            self.response.out.write(json.dumps(obj))
+        except Exception:
+            logging.info("There was an error")
         
-class updateEvent(BlogHandler):
+class UpdateEvent(BlogHandler):
     def get(self):
-        if self.user:
-            eid = int(self.request.get('q'))
-            logging.info(eid)
-            event_name = Event.by_id(int(eid))
-            community = Community.search_by_ID(event_name.community_id)
-            logging.info(event_name.date.strftime('%Y-%m-%dT%H:%M'))
-            logging.info(event_name.community_id)
-            comm_obj = Community.search_by_ID(event_name.community_id)
-            logging.info(comm_obj)
-            logging.info(comm_obj.community_name)
-            self.render("updateevent.html", 
-                        eid = eid,
-                        event_msg = event_name.event_message,
-                        msg_type = event_name.message_type, 
-                        venue = event_name.venue,
-                        date = event_name.date.strftime('%Y-%m-%dT%H:%M'),
-                        room=event_name.room,
-                        community_name = community.community_name,
-                        cat=event_name.category)
-
-        else:
-            self.redirect("/login")
-
-    def post(self):
-        if not self.user:
-            self.redirect('/login')
-        else:
-            eid = self.request.get('eid')
-            logging.info(eid)
-            event =  Event.by_id(int(eid))
-            logging.info(event)
-            event_msg = self.request.get('event_message')
-            msg_type = self.request.get('message_type')
-            venue = self.request.get('venue')
-            room = self.request.get('room')
-            dt = self.request.get('date')
-            community_name = self.request.get('community_name')
-            category = self.request.get('category')
-            admin_id = self.user.key().id()
-            date = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M')
-            community_id = int(Community.by_Name(community_name))
-        
-            setattr(event, 'event_message', event_msg)
-            setattr(event, 'message_type', msg_type)
-            setattr(event, 'venue', venue)
-            setattr(event, 'room', room)
-            setattr(event, 'date', date)
-            setattr(event, 'community_id', community_id)
-            
-            
-            if event_msg and msg_type and venue and room and date and community_id and category and admin_id:
-                event.put()
-                self.redirect('/listevent')
+        try:
+            if self.user:
+                event_id = int(self.request.get('event_id'))
+                logging.info(event_id)
+                event_name = Event.by_id(int(event_id))
+                community = Community.search_by_ID(event_name.community_id)
+                logging.info(event_name.date.strftime('%Y-%m-%dT%H:%M'))
+                logging.info(event_name.community_id)
+                comm_obj = Community.search_by_ID(event_name.community_id)
+                logging.info(comm_obj)
+                logging.info(comm_obj.community_name)
+                self.render("updateevent.html", 
+                            event_id = event_id,
+                            event_msg = event_name.event_message,
+                            msg_type = event_name.message_type, 
+                            venue = event_name.venue,
+                            date = event_name.date.strftime('%Y-%m-%dT%H:%M'),
+                            room=event_name.room,
+                            community_name = community.community_name,
+                            cat=event_name.category)
             else:
-                error = "Please fill all the fields!!"
-                self.render("success.html",  event_message = event_msg, message_type = msg_type, venue = venue, room = room, date = date, community_id = community_id, category = category, admin_id = admin_id, error=error)
+                self.redirect("/login")
+        except Exception:
+            logging.info("There was an error")
+
+    def post(self):
+        try:
+            if not self.user:
+                self.redirect('/login')
+            else:
+                event_id = self.request.get('event_id')
+                logging.info(event_id)
+                event =  Event.by_id(int(event_id))
+                logging.info(event)
+                event_msg = self.request.get('event_message')
+                msg_type = self.request.get('message_type')
+                venue = self.request.get('venue')
+                room = self.request.get('room')
+                dt = self.request.get('date')
+                community_name = self.request.get('community_name')
+                category = self.request.get('category')
+                admin_id = self.user.key().id()
+                date = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M')
+                community_id = int(Community.by_Name(community_name))            
+                
+                if event_msg and msg_type and venue and room and date and community_id and category and admin_id:
+                    setattr(event, 'event_message', event_msg)
+                    setattr(event, 'message_type', msg_type)
+                    setattr(event, 'venue', venue)
+                    setattr(event, 'room', room)
+                    setattr(event, 'date', date)
+                    setattr(event, 'community_id', community_id)
+                    event.put()
+                    self.redirect('/listEvent')
+                else:
+                    error = "Please fill all the fields!!"
+                    self.render("success.html",  event_message = event_msg, message_type = msg_type, venue = venue, room = room, date = date, community_id = community_id, category = category, admin_id = admin_id, error=error)
+        except Exception:
+            logging.info("There was an error")
                         
-            
-            
-class ListSubAdmin(BlogHandler):
-    def get(self):
-        if self.user:
-            sadmin = User.all().filter("permission = ", "subadmin")
-            self.render("listsubadmin.html", sadmins = sadmin)
-        else:
-            self.redirect("/login")
-
-    def post(self):
-        if not self.user:
-            self.redirect('/login')
-            
-class DeleteSubAdmin(BlogHandler):
-    def get(self):
-        if self.user:
-            cid = int(self.request.get('q'))
-            username = User.by_ID(cid)
-            logging.info(username)
-            db.delete(username)
-            self.redirect("/listsubadmin")
-        else:
-            self.redirect("/login")
-
-    def post(self):
-        if not self.user:
-            self.redirect('/login')
-
 class About(BlogHandler):
     def get(self):
         if self.user:
@@ -795,39 +794,37 @@ class About(BlogHandler):
         if not self.user:
             self.redirect('/login')
             
-class ListOfEvents(BlogHandler):
-    def get(self):
-        uid = int(self.request.get('user_id'))
-#         comm = Follow.by_User_Id(uid)
-        comm = ""
-        self.response.headers['Content-Type'] = 'application/json'
-        obj = ""
-        for c in comm:
-            com = Event.by_Community(int(c))
-            obj += {
-                    'id':com.key().id(),
-                    'event_message': com.event_message,
-                    'message_type': com.message_type,
-                    'venue': com.venue,
-                    'room': com.room,
-                    'date': com.date,
-                    'category': com.category,
-                    'admin_id': com.admin_id
-                }
-        self.response.out.write(json.dumps(obj))          
-                        
-    def post(self):
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {}
-        self.response.out.write(json.dumps(obj))
+# class ListOfEvents(BlogHandler):
+#     def get(self):
+#         comm = ""
+#         self.response.headers['Content-Type'] = 'application/json'
+#         obj = ""
+#         for c in comm:
+#             com = Event.by_Community(int(c))
+#             obj += {
+#                     'id':com.key().id(),
+#                     'event_message': com.event_message,
+#                     'message_type': com.message_type,
+#                     'venue': com.venue,
+#                     'room': com.room,
+#                     'date': com.date,
+#                     'category': com.category,
+#                     'admin_id': com.admin_id
+#                 }
+#         self.response.out.write(json.dumps(obj))          
+#                         
+#     def post(self):
+#         self.response.headers['Content-Type'] = 'application/json'   
+#         obj = {}
+#         self.response.out.write(json.dumps(obj))
             
-class CreateRsvp(BlogHandler):
+class AddRsvp(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'
-        uid = int(self.request.get('user_id'))
-        eid = int(self.request.get('event_id'))
-        if not Rsvp.by_User_Event(uid, eid):
-            r = Rsvp.rsvp_entry(uid, eid)
+        user_id = int(self.request.get('user_id'))
+        event_id = int(self.request.get('event_id'))
+        if not Rsvp.by_user_event(user_id, event_id):
+            r = Rsvp.rsvp_entry(user_id, event_id)
             r.put()              
             obj = {
                 'Result': "True"
@@ -842,89 +839,47 @@ class CreateRsvp(BlogHandler):
     def post(self):
         self.redirect('/login')
 
-class CreateFollow(BlogHandler):
-    def get(self):
-        self.render("listcommunity.html")
-        self.response.headers['Content-Type'] = 'application/json'
-        cid = int(self.request.get('community_id'))
-        logging.info(cid)
-        uid = int(self.request.get('user_id'))
-        logging.info(uid)
-        if not Follow.by_User_Community(uid, cid):
-            r = Follow.follow_entry(uid, cid)
-            r.put()              
-            obj = {
-                'Result': "True"
-                }
-        else:
-            obj = {
-                'Result': "False"
-              }             
-        
-       
-        self.response.out.write(json.dumps(obj))
-            
-    def post(self):
-        self.redirect('/login')
-
-class DeleteFollow(BlogHandler):
+class DeleteRsvp(BlogHandler):
     def get(self):
         if self.user:
-            cid = int(self.request.get('community_id'))
-            logging.info(cid)
-            uid = int(self.request.get('user_id'))
-            logging.info(uid)
-            r = Follow.search_by_userId_communityId(uid, cid)
-            logging.info(r)
-            if not r:
-                db.delete(r)
-                self.redirect("/community")
+            user_id = int(self.request.get('user_id'))
+            event_id = int(self.request.get('event_id'))
+            rsvp_entry = Rsvp.by_user_event(user_id, event_id)
+            db.delete(rsvp_entry)
+            self.redirect("/listEvent")
         else:   
-            self.redirect("/login")
+            self.redirect("/listEvent")
 
     def post(self):
         if not self.user:
             self.redirect('/login')
 
-class NumberOfFollowers(BlogHandler):
+class CreateFollow(BlogHandler):
     def get(self):
+        self.render("listcommunity.html")
+        '''
+        self.response.headers['Content-Type'] = 'application/json'
+        uid = int(self.request.get('user_id'))
         cid = int(self.request.get('community_id'))
-        res = Follow.count_by_Community(cid)
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-            'Number': res
-          } 
+        if not Follow.by_User_Community(uid, cid):
+            r = Follow.follow_entry(uid, cid)
+            r.put()              
+            obj = {
+                'Result': "True"
+              }
+        else:
+            obj = {
+                'Result': "False"
+              }             
         self.response.out.write(json.dumps(obj))
-                    
+        '''
+        uid = int(self.request.get('user_id'))
+        logging.info(uid)
+            
     def post(self):
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-            'Number': -1 
-        }
-        self.response.out.write(json.dumps(obj))
+        self.redirect('/login')
 
-class ListOfFollowers(BlogHandler):
-    def get(self):
-        cid = int(self.request.get('community_id'))
-        res = Follow.list_by_Community(cid)
-        lst = []
-        for r in res:
-            logging.info(r)
-            lst.append(User.by_id(r.user_id).name)
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-            'User': lst
-          } 
-        self.response.out.write(json.dumps(obj))
                     
-    def post(self):
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-            'User': ""
-        }
-        self.response.out.write(json.dumps(obj))
-
-       
 class NumberOfAttendees(BlogHandler):
     def get(self):
         eid = int(self.request.get('event_id'))
@@ -961,32 +916,73 @@ class ListOfAttendees(BlogHandler):
             'User': ""
         }
         self.response.out.write(json.dumps(obj))
+        
+class AddEventType(BlogHandler):
+    def get(self):
+        if self.user:
+            self.render("addEventType.html")
+        else:
+            self.redirect("/login")
+            
+    def post(self):
+        if self.user:
+            eventTypeList = self.request.get("eventTypeList")
+            event_type_entry = EventTypeList.event_type_list_entry(eventTypeList)
+            event_type_entry.put()
+            self.redirect("/listEventType")
+        else:
+            self.render("login")
+class ListEventType(BlogHandler):
+    def get(self):
+        if self.user:
+            event_type_list = EventTypeList.all_data()
+            self.render("listEventType.html", list = event_type_list)
+        else:
+            self.redirect("/login")
+
+    def post(self):
+        if not self.user:
+            self.redirect('/login')
+            
+class DeleteEventType(BlogHandler):
+    def get(self):
+        if self.user:
+            event_type_id = int(self.request.get('event_type_id'))
+            event_type_entry = EventTypeList.by_id(event_type_id)
+            db.delete(event_type_entry)
+            self.redirect("/listEventType")
+        else:   
+            self.redirect("/login")
+
+    def post(self):
+        if not self.user:
+            self.redirect('/login')
             
 app = webapp2.WSGIApplication([('/', Login),
                                ('/signup', Signup),
-                               ('/usersignup', UserSignup),
+                               ('/userSignup', UserSignup),
                                ('/login', Login),
-                               ('/userlogin', UserLogin),
-                               ('/userlogout', UserLogout),
-                               ('/logout', Logout),
-                               ('/addevent', AddEvent),
-                               ('/listevent', ListEvents),
-                               ('/userlistevent', UserListEvents),
-                               ('/deleteevent', DeleteEvent),
-                               ('/updateevent', updateEvent),
-                               ('/createcommunity', CreateCommunity),
+                               ('/userLogin', UserLogin),
+                               ('/userLogout', UserLogout),
+                               ('/Logout', Logout),
+                               ('/addEvent', AddEvent),
+                               ('/listEvent', ListEvents),
+                               ('/userListEvent', UserListEvents),
+                               ('/deleteEvent', DeleteEvent),
+                               ('/updateEvent', UpdateEvent),
+                               ('/createCommunity', CreateCommunity),
                                ('/community', ListCommunity),
-                               ('/userlistcommunity', UserListCommunity),
+                               ('/userListCommunity', UserListCommunity),
                                ('/updatePwd', UpdatePassword),
                                ('/updateCommunity', UpdateCommunity),
-                               ('/listsubadmin', ListSubAdmin),
-                               ('/createRsvp', CreateRsvp),
+                               ('/addRsvp', AddRsvp),
+                               ('/deleteRsvp', DeleteRsvp),
                                ('/createFollow',CreateFollow),
-                               ('/deleteFollow',DeleteFollow), 
                                ('/getNumberOfAttendees', NumberOfAttendees),
                                ('/getListOfAttendees', ListOfAttendees),
-                               ('/getNumberOfFollowers', NumberOfFollowers),
-                               ('/getListOfFollowers', ListOfFollowers),
                                ('/about', About),
+                               ('/addEventType', AddEventType),
+                               ('/listEventType', ListEventType),
+                               ('/deleteEventType', DeleteEventType)
                                ],
                               debug=True)
