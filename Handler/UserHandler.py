@@ -277,4 +277,14 @@ class Welcome(BlogHandler):
             self.render('welcome.html', username = username)
         else:
             self.redirect('/unit2/signup')
-    
+
+class About(BlogHandler):
+    def get(self):
+        if self.user:
+            self.render("about.html")
+        else:
+            self.redirect('/login')
+            
+    def post(self):
+        if not self.user:
+            self.redirect('/login')

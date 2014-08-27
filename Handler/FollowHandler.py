@@ -116,3 +116,40 @@ class DeleteFollow(BlogHandler):
     def post(self):
         if not self.user:
             self.redirect('/login')
+
+class NumberOfFollowers(BlogHandler):
+    def get(self):
+        cid = int(self.request.get('community_id'))
+        res = Follow.count_by_Community(cid)
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'Number': res
+          } 
+        self.response.out.write(json.dumps(obj))
+                    
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'Number': -1 
+        }
+        self.response.out.write(json.dumps(obj))
+
+class ListOfFollowers(BlogHandler):
+    def get(self):
+        cid = int(self.request.get('community_id'))
+        res = Follow.list_by_Community(cid)
+        lst = []
+        for r in res:
+            lst.append(User.by_id(r.user_id).name)
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'UserHandlers': lst
+          } 
+        self.response.out.write(json.dumps(obj))
+                    
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'UserHandlers': ""
+        }
+        self.response.out.write(json.dumps(obj))
