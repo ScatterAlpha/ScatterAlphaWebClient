@@ -172,7 +172,42 @@ class Rsvp(db.Model):
                     user_id = user_id,
                     event_id = event_id)
         
-        
+def follow_key(group = 'default'):
+    return db.Key.from_path('follow', group)
+
+class Follow(db.Model):
+    user_id = db.IntegerProperty(required = True)
+    community_id = db.IntegerProperty(required = True)
+    
+    @classmethod
+    def follow_entry(cls, user_id, community_id):
+        return Follow(parent = follow_key(),
+                    user_id = user_id,
+                    community_id = community_id)    
+    
+    @classmethod
+    def by_User_Community(cls, user_id, community_id):
+        c = Follow.all().filter("user_id = ", user_id).filter("community_id = ", community_id).get()
+        logging.info(c)
+        if c:
+            return True
+        else:
+            return False                
+                
+    @classmethod
+    def search_by_userId_communityId(cls,user_id,community_id):            
+        return  Follow.all().filter("user_id = ", user_id).filter("community_id = ", community_id).get()
+    
+    @classmethod
+    def count_by_Community(cls, community_id):
+        c = Follow.all().filter("community_id = ", community_id).count(10000)
+        return c
+    
+    @classmethod
+    def list_by_Community(cls, community_id):
+        c = Follow.all().filter("community_id = ", community_id).fetch(10000)
+        return c
+                
 def community_key(group = 'default'):
     return db.Key.from_path('community', group)
 
@@ -276,6 +311,7 @@ NAME_RE  = re.compile(r"^[ a-zA-Z]{3,20}$")
 def valid_name(name):
     return not name or NAME_RE.match(name)
 
+
 class CreateCommunity(BlogHandler):
     def get(self):
         if self.user:
@@ -328,7 +364,7 @@ class UpdateCommunity(BlogHandler):
             name = self.request.get("community_name")
             content = self.request.get("description")
             c = Community.updateDescription(name, content)
-            self.redirect("/listCommunity")
+            self.redirect("/community")
 
 class ListCommunity(BlogHandler):
     def get(self):
@@ -591,7 +627,16 @@ class AddEvent(BlogHandler):
         date = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M')
         community_id = int(Community.by_Name(community_name))
         
-        if event_msg and msg_type and venue and room and date and community_id and category and admin_id:
+
+
+
+
+
+
+
+
+
+        if event_msg and msg_type and venue and room and date and community_name and category and admin_id:
             p = Event.event_entry(event_msg,msg_type,venue,room,date,community_id,category,admin_id)
             p.put()
             self.redirect('/listevent')
@@ -655,7 +700,8 @@ class updateEvent(BlogHandler):
     def get(self):
         if self.user:
             eid = int(self.request.get('q'))
-            event_name = Event.by_id(eid)
+            logging.info(eid)
+            event_name = Event.by_id(int(eid))
             community = Community.search_by_ID(event_name.community_id)
             logging.info(event_name.date.strftime('%Y-%m-%dT%H:%M'))
             logging.info(event_name.community_id)
@@ -671,6 +717,7 @@ class updateEvent(BlogHandler):
                         room=event_name.room,
                         community_name = community.community_name,
                         cat=event_name.category)
+
         else:
             self.redirect("/login")
 
@@ -678,8 +725,10 @@ class updateEvent(BlogHandler):
         if not self.user:
             self.redirect('/login')
         else:
-            event = Event.by_id(self.request.get('eid'))
-            
+            eid = self.request.get('eid')
+            logging.info(eid)
+            event =  Event.by_id(int(eid))
+            logging.info(event)
             event_msg = self.request.get('event_message')
             msg_type = self.request.get('message_type')
             venue = self.request.get('venue')
@@ -705,6 +754,8 @@ class updateEvent(BlogHandler):
             else:
                 error = "Please fill all the fields!!"
                 self.render("success.html",  event_message = event_msg, message_type = msg_type, venue = venue, room = room, date = date, community_id = community_id, category = category, admin_id = admin_id, error=error)
+                        
+            
             
 class ListSubAdmin(BlogHandler):
     def get(self):
@@ -790,7 +841,90 @@ class CreateRsvp(BlogHandler):
             
     def post(self):
         self.redirect('/login')
+
+class CreateFollow(BlogHandler):
+    def get(self):
+        self.render("listcommunity.html")
+        self.response.headers['Content-Type'] = 'application/json'
+        cid = int(self.request.get('community_id'))
+        logging.info(cid)
+        uid = int(self.request.get('user_id'))
+        logging.info(uid)
+        if not Follow.by_User_Community(uid, cid):
+            r = Follow.follow_entry(uid, cid)
+            r.put()              
+            obj = {
+                'Result': "True"
+                }
+        else:
+            obj = {
+                'Result': "False"
+              }             
+        
+       
+        self.response.out.write(json.dumps(obj))
+            
+    def post(self):
+        self.redirect('/login')
+
+class DeleteFollow(BlogHandler):
+    def get(self):
+        if self.user:
+            cid = int(self.request.get('community_id'))
+            logging.info(cid)
+            uid = int(self.request.get('user_id'))
+            logging.info(uid)
+            r = Follow.search_by_userId_communityId(uid, cid)
+            logging.info(r)
+            if not r:
+                db.delete(r)
+                self.redirect("/community")
+        else:   
+            self.redirect("/login")
+
+    def post(self):
+        if not self.user:
+            self.redirect('/login')
+
+class NumberOfFollowers(BlogHandler):
+    def get(self):
+        cid = int(self.request.get('community_id'))
+        res = Follow.count_by_Community(cid)
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'Number': res
+          } 
+        self.response.out.write(json.dumps(obj))
                     
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'Number': -1 
+        }
+        self.response.out.write(json.dumps(obj))
+
+class ListOfFollowers(BlogHandler):
+    def get(self):
+        cid = int(self.request.get('community_id'))
+        res = Follow.list_by_Community(cid)
+        lst = []
+        for r in res:
+            logging.info(r)
+            lst.append(User.by_id(r.user_id).name)
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'User': lst
+          } 
+        self.response.out.write(json.dumps(obj))
+                    
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'User': ""
+        }
+        self.response.out.write(json.dumps(obj))
+
+       
 class NumberOfAttendees(BlogHandler):
     def get(self):
         eid = int(self.request.get('event_id'))
@@ -847,8 +981,12 @@ app = webapp2.WSGIApplication([('/', Login),
                                ('/updateCommunity', UpdateCommunity),
                                ('/listsubadmin', ListSubAdmin),
                                ('/createRsvp', CreateRsvp),
+                               ('/createFollow',CreateFollow),
+                               ('/deleteFollow',DeleteFollow), 
                                ('/getNumberOfAttendees', NumberOfAttendees),
                                ('/getListOfAttendees', ListOfAttendees),
+                               ('/getNumberOfFollowers', NumberOfFollowers),
+                               ('/getListOfFollowers', ListOfFollowers),
                                ('/about', About),
                                ],
                               debug=True)
