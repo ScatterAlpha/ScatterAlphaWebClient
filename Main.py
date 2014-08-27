@@ -7,7 +7,12 @@ import hmac
 import logging
 import datetime
 import json
-from Model.ModelDao import *
+from ModelDB.ModelDao import User
+from ModelDB.ModelDao import Community
+from ModelDB.ModelDao import Event
+from ModelDB.ModelDao import Rsvp
+from ModelDB.ModelDao import Follow
+from ModelDB.ModelDao import EventTypeList
 from string import letters
 
 
@@ -675,7 +680,7 @@ class DeleteFollow(BlogHandler):
 class NumberOfAttendees(BlogHandler):
    def get(self):
        eid = int(self.request.get('event_id'))
-       res = Rsvp.count_by_Event(eid)
+       res = Rsvp.count_by_event(eid)
        self.response.headers['Content-Type'] = 'application/json'   
        obj = {
            'Number': res
@@ -692,7 +697,7 @@ class NumberOfAttendees(BlogHandler):
 class ListOfAttendees(BlogHandler):
    def get(self):
        eid = int(self.request.get('event_id'))
-       res = Rsvp.list_by_Event(eid)
+       res = Rsvp.list_by_event(eid)
        lst = []
        for r in res:
            lst.append(User.by_id(r.user_id).name)
