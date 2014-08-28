@@ -72,7 +72,7 @@ class BlogHandler(webapp2.RequestHandler):
         uid = self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
 
-
+'''
 class Signup(BlogHandler):
     def get(self):
         self.render("signupform.html")
@@ -118,8 +118,8 @@ class Signup(BlogHandler):
         except:
             e = sys.exc_info()[0]
             self.redirect("/signup", error = e)
-            
-class UserSignup(BlogHandler):
+'''            
+class Signup(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
@@ -182,14 +182,17 @@ class UserSignup(BlogHandler):
                 self.response.out.write(json.dumps(obj))
         except:
             e = sys.exc_info()[0]
-            self.redirect("/userSignup", error = e)
+            self.redirect("/signup", error = e)
             
 class UpdatePassword(BlogHandler):
     def get(self):
-        if self.user:
-            self.render("updatePassword.html")
-        else:
-            self.redirect("/login")
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+              'Result': "False",
+              'Error':"Invalid Request"
+        } 
+        self.response.out.write(json.dumps(obj))
+
             
     def post(self):
         if not self.user:
@@ -199,6 +202,8 @@ class UpdatePassword(BlogHandler):
             new_password =self.request.get("new_password")
             cfm_password = self.request.get("cfm_password")
             
+        params = dict(username = self.username,
+                      name = self.name)
         
         if old_password != self.user.password:
             params['error_password'] = "That was not the old password"
@@ -212,7 +217,13 @@ class UpdatePassword(BlogHandler):
         else:    
             u = User.register(self.username, new_password, self.name, self.permission)
             u.put()
-
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
+                    'Result': "True",
+                    
+                  } 
+            self.response.out.write(json.dumps(obj))
+'''
 
 class Login(BlogHandler):
     def get(self):
@@ -228,8 +239,8 @@ class Login(BlogHandler):
         else:
             msg = 'Invalid login'
             self.render('loginform.html', error = msg)
-            
-class UserLogin(BlogHandler):
+'''            
+class Login(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
@@ -258,14 +269,21 @@ class UserLogin(BlogHandler):
                 'Error': msg
               } 
             self.response.out.write(json.dumps(obj))
-
+'''
 class Logout(BlogHandler):
     def get(self):
         self.logout()
         self.redirect('/login')
-        
-class UserLogout(BlogHandler):
+'''        
+class Logout(BlogHandler):
     def get(self):
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'Result': "False",
+            'Error':""
+          } 
+        self.response.out.write(json.dumps(obj))    
+    def post(self):
         self.logout()
 
 class Welcome(BlogHandler):
@@ -278,10 +296,12 @@ class Welcome(BlogHandler):
 
 class About(BlogHandler):
     def get(self):
-        if self.user:
-            self.render("about.html")
-        else:
-            self.redirect('/login')
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'Result': "False",
+            'Error':""
+          } 
+        self.response.out.write(json.dumps(obj))
             
     def post(self):
         if not self.user:
