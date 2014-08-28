@@ -1,5 +1,6 @@
 import os
 import hmac
+import json
 import jinja2
 import webapp2
 from ModelDB.ModelDao import User
@@ -62,41 +63,74 @@ def render_post(response, post):
     
 class AddEventType(BlogHandler):
     def get(self):
-        if self.user:
-            self.render("addEventType.html")
-        else:
-            self.redirect("/login")
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))
             
     def post(self):
         if self.user:
             eventTypeList = self.request.get("eventTypeList")
-            event_type_entry = EventTypeList.event_type_list_entry(eventTypeList)
-            event_type_entry.put()
-            self.redirect("/listEventType")
+            if not EventTypeList.event_type_list_entry(eventTypeList):
+                etl = EventTypeList.event_type_list_entry(eventTypeList)
+                etl.put()              
+                obj = {
+                    'Result': "True"
+                  }
+            else:
+                obj = {
+                    'Result': "False"
+                  }            
         else:
-            self.render("login")
+            obj = {
+                'Result': "False"
+            }
+        self.response.out.write(json.dumps(obj)) 
+
 class ListEventType(BlogHandler):
     def get(self):
-        if self.user:
-            event_type_list = EventTypeList.all_data()
-            self.render("listEventType.html", list = event_type_list)
-        else:
-            self.redirect("/login")
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))
 
     def post(self):
-        if not self.user:
-            self.redirect('/login')
+        eventTypeList= EventTypeList.all_data()
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = []
+        for etl in eventTypeList:
+            obj.append({
+                    'id':str(etl.key().id()),
+                    'event_type_name': str(etl.EventTypeName),
+                })
+        self.response.out.write(json.dumps(obj))
             
 class DeleteEventType(BlogHandler):
     def get(self):
-        if self.user:
-            event_type_id = int(self.request.get('event_type_id'))
-            event_type_entry = EventTypeList.by_id(event_type_id)
-            db.delete(event_type_entry)
-            self.redirect("/listEventType")
-        else:   
-            self.redirect("/login")
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))        
 
     def post(self):
-        if not self.user:
-            self.redirect('/login')
+        self.response.headers['Content-Type'] = 'application/json'
+        event_type_id = int(self.request.get('event_type_id'))
+        if self.user:
+            if EventTypeList.by_id(event_type_id):
+                etl = EventTypeList.by_id(event_type_id)
+                db.delete(etl)              
+                obj = {
+                    'Result': "True"
+                  }
+            else:
+                obj = {
+                    'Result': "False"
+                  }             
+        else:
+            obj = {
+                'Result': "False"
+            }
+        self.response.out.write(json.dumps(obj))
