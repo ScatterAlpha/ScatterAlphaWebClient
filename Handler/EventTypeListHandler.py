@@ -119,8 +119,6 @@ class DeleteEventType(BlogHandler):
         self.response.headers['Content-Type'] = 'application/json'
         event_type_id = int(self.request.get('event_type_id'))
         if self.user:
-            user_id = int(self.request.get('user_id'))
-            event_id = int(self.request.get('event_id'))
             if EventTypeList.by_id(event_type_id):
                 etl = EventTypeList.by_id(event_type_id)
                 db.delete(etl)              
