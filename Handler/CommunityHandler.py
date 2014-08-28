@@ -100,7 +100,7 @@ class AddCommunity(BlogHandler):
 class DeleteCommunity(BlogHandler):
     def get(self):
         if self.user:
-            self.render("community.html")
+            self.redirect("/listCommunity")
         else:
             self.redirect("/login")
 
@@ -114,7 +114,7 @@ class UpdateCommunity(BlogHandler):
             community_id = int(self.request.get('community_id'))
             community_name = Community.search_by_ID(community_id)
             logging.info(community_name.community_name)
-            self.render("updateCommunity.html", community_name = community_name.community_name, description = community_name.content)
+            self.render("updatecommunity.html", community_name = community_name.community_name, description = community_name.content)
         else:
             self.redirect("/login")
 
@@ -131,7 +131,7 @@ class ListCommunity(BlogHandler):
     def get(self):
         if self.user:
             communities = Community.all_data()
-            self.render("listCommunity.html", communities = communities)
+            self.render("listcommunity.html", communities = communities)
         else:
             self.redirect("/login")
 
@@ -139,32 +139,3 @@ class ListCommunity(BlogHandler):
         if not self.user:
             self.redirect('/login')
             
-class UserListCommunity(BlogHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-            'Result': "Invalid Request",
-            'Error':""
-        } 
-        self.response.out.write(json.dumps(obj))
-
-    def post(self):
-        communities = Community.all_data()
-        logging.info("communities")
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = []
-        for c in communities:
-            logging.info("content "+c.content)
-            obj.append({
-                    'id':str(c.key().id()),
-                    'community_name': str(c.community_name),
-                    'admin_id': str(c.super_admin_id),
-                    'content': str(c.content)
-                })
-        self.response.out.write(json.dumps(obj))
-#     else:
-#             self.response.headers['Content-Type'] = 'application/json'   
-#             obj = {'Error':'Invalid user'} 
-#             self.response.out.write(json.dumps(obj))
-                    
-
