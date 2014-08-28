@@ -62,7 +62,7 @@ class BlogHandler(webapp2.RequestHandler):
 
 
 
-class CreateCommunity(BlogHandler):
+class AddCommunity(BlogHandler):
     def get(self):
         if self.user:
             self.render("community.html")
@@ -81,7 +81,7 @@ class CreateCommunity(BlogHandler):
                 if community_name and content:
                     p = Community.comm_entry(community_name, content, super_admin_id)
                     p.put()
-                    self.redirect('/community')
+                    self.redirect('/listCommunity')
                 else:
                     error = "Community Name and Description, please!"
                     self.render("community.html",  community_name=community_name, content=content, error=error)
@@ -92,10 +92,21 @@ class CreateCommunity(BlogHandler):
             if community_name and content:
                 p = Community.comm_entry(community_name, content, super_admin_id)
                 p.put()
-                self.redirect('/community')
+                self.redirect('/listCommunity')
             else:
                 error = "Community Name and Description, please!"
                 self.render("community.html",  community_name=community_name, content=content, error=error)
+
+class DeleteCommunity(BlogHandler):
+    def get(self):
+        if self.user:
+            self.render("community.html")
+        else:
+            self.redirect("/login")
+
+    def post(self):
+        if not self.user:
+            self.redirect('/login')
             
 class UpdateCommunity(BlogHandler):
     def get(self):
@@ -114,7 +125,7 @@ class UpdateCommunity(BlogHandler):
             community_name = self.request.get("community_name")
             content = self.request.get("description")
             c = Community.updateDescription(community_name, content)
-            self.redirect("/community")
+            self.redirect("/listCommunity")
 
 class ListCommunity(BlogHandler):
     def get(self):

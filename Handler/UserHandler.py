@@ -192,8 +192,6 @@ class UpdatePassword(BlogHandler):
             self.redirect("/login")
             
     def post(self):
-        params = dict(username = self.username,
-                      name = self.name)
         if not self.user:
             self.redirect("/login")
         else:    

@@ -68,66 +68,31 @@ def valid_password(password):
 NAME_RE  = re.compile(r"^[ a-zA-Z]{3,20}$")
 def valid_name(name):
     return not name or NAME_RE.match(name)
-
-
-# class ListOfEvents(BlogHandler):
-#     def get(self):
-#         comm = ""
-#         self.response.headers['Content-Type'] = 'application/json'
-#         obj = ""
-#         for c in comm:
-#             com = Event.by_Community(int(c))
-#             obj += {
-#                     'id':com.key().id(),
-#                     'event_message': com.event_message,
-#                     'message_type': com.message_type,
-#                     'venue': com.venue,
-#                     'room': com.room,
-#                     'date': com.date,
-#                     'category': com.category,
-#                     'admin_id': com.admin_id
-#                 }
-#         self.response.out.write(json.dumps(obj))          
-#                         
-#     def post(self):
-#         self.response.headers['Content-Type'] = 'application/json'   
-#         obj = {}
-#         self.response.out.write(json.dumps(obj))
-            
-
-
-
-        
-
-            
+                        
 app = webapp2.WSGIApplication([('/', Login),
-                               ('/signup', Signup),
-                               ('/userSignup', UserSignup),
-                               ('/login', Login),
-                               ('/userLogin', UserLogin),
-                               ('/userLogout', UserLogout),
-                               ('/Logout', Logout),
-                               ('/addEvent', AddEvent),
-                               ('/listEvent', ListEvents),
-                               ('/userListEvent', UserListEvents),
-                               ('/deleteEvent', DeleteEvent),
-                               ('/updateEvent', UpdateEvent),
-                               ('/createCommunity', CreateCommunity),
-                               ('/community', ListCommunity),
-                               ('/userListCommunity', UserListCommunity),
-                               ('/updatePwd', UpdatePassword),
-                               ('/updateCommunity', UpdateCommunity),
-                               ('/addRsvp', AddRsvp),
-                               ('/deleteRsvp', DeleteRsvp),
-                               ('/createFollow',CreateFollow),
-                               ('/deleteFollow',DeleteFollow), 
-                               ('/getNumberOfAttendees', NumberOfAttendees),
-                               ('/getListOfAttendees', ListOfAttendees),
-                               ('/getNumberOfFollowers', NumberOfFollowers),
-                               ('/getListOfFollowers', ListOfFollowers),
-                               ('/about', About),
-                               ('/addEventType', AddEventType),
-                               ('/listEventType', ListEventType),
-                               ('/deleteEventType', DeleteEventType)
+                                 ('/signup', Signup),
+                                 ('/login', Login),
+                                 ('/logout', Logout),
+                                 ('/updatePassword', UpdatePassword),
+                                 ('/about', About),
+                                 ('/addEvent', AddEvent),
+                                 ('/listEvent', ListEvents),
+                                 ('/deleteEvent', DeleteEvent),
+                                 ('/updateEvent', UpdateEvent),                                                              
+                                 ('/addCommunity', AddCommunity),
+                                 ('/listCommunity', ListCommunity),
+                                 ('/updateCommunity', UpdateCommunity),
+                                 ('/deleteCommunity', DeleteCommunity),                               
+                                 ('/addRsvp', AddRsvp),
+                                 ('/deleteRsvp', DeleteRsvp),
+                                 ('/getNumberOfAttendees', NumberOfAttendees),
+                                 ('/getListOfAttendees', ListOfAttendees),                               
+                                 ('/addFollow',AddFollow),
+                                 ('/deleteFollow',DeleteFollow),                               
+                                 ('/getNumberOfFollowers', NumberOfFollowers),
+                                 ('/getListOfFollowers', ListOfFollowers),                               
+                                 ('/addEventType', AddEventType),
+                                 ('/listEventType', ListEventType),
+                                 ('/deleteEventType', DeleteEventType)
                                ],
                               debug=True)

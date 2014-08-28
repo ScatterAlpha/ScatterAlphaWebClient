@@ -114,7 +114,7 @@ class DeleteEvent(BlogHandler):
         except:
             e = sys.exc_info()[0]
             error = e
-            self.redirect("/listEvent", error = error)
+            self.render("listevents.html", error = error)
 
     def post(self):
         if not self.user:
@@ -134,42 +134,6 @@ class ListEvents(BlogHandler):
         if not self.user:
             self.redirect('/login')
             
-class UserListEvents(BlogHandler):
-    def get(self):
-        try:
-            self.response.headers['Content-Type'] = 'application/json'   
-            obj = {
-                    'Result': "Invalid Request",
-                    'Error':""
-                  } 
-            self.response.out.write(json.dumps(obj))
-        except:
-            e = sys.exc_info()[0]
-            self.response.headers['Content-Type'] = 'application/json'   
-            obj = {
-                    'Result': "Exception",
-                    'Error':e
-                  } 
-            self.response.out.write(json.dumps(obj))
-            
-
-    def post(self):
-        try:
-            events = Event.all()
-            self.response.headers['Content-Type'] = 'application/json'   
-            obj = []
-            for e in events:
-                obj.append({
-                        'id':str(e.key().id()),
-                        'admin_id': str(e.admin_id),
-                        'category': str(e.category),
-                        'date': str(e.date),
-                        'event_message':str(e.event_message),
-                        'venue':str(e.venue)+str(e.room)
-                })        
-            self.response.out.write(json.dumps(obj))
-        except Exception:
-            logging.info("There was an error")
         
 class UpdateEvent(BlogHandler):
     def get(self):

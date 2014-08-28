@@ -75,16 +75,15 @@ class BlogHandler(webapp2.RequestHandler):
 
 
 
-class CreateFollow(BlogHandler):
+class AddFollow(BlogHandler):
     def get(self):
-        self.render("listcommunity.html")
         self.response.headers['Content-Type'] = 'application/json'
-        cid = int(self.request.get('community_id'))
-        logging.info(cid)
-        uid = int(self.request.get('user_id'))
-        logging.info(uid)
-        if not Follow.by_User_Community(uid, cid):
-            r = Follow.follow_entry(uid, cid)
+        community_id = int(self.request.get('community_id'))
+        logging.info(community_id)
+        user_id = int(self.request.get('user_id'))
+        logging.info(user_id)
+        if not Follow.by_User_Community(user_id, community_id):
+            r = Follow.follow_entry(user_id, community_id)
             r.put()              
             obj = {
                 'Result': "True"
@@ -101,15 +100,15 @@ class CreateFollow(BlogHandler):
 class DeleteFollow(BlogHandler):
     def get(self):
         if self.user:
-            cid = int(self.request.get('community_id'))
-            logging.info(cid)
-            uid = int(self.request.get('user_id'))
-            logging.info(uid)
-            r = Follow.search_by_userId_communityId(uid, cid)
+            community_id = int(self.request.get('community_id'))
+            logging.info(community_id)
+            user_id = int(self.request.get('user_id'))
+            logging.info(user_id)
+            r = Follow.search_by_userId_communityId(user_id, community_id)
             logging.info(r)
-            if not r:
+            if r:
                 db.delete(r)
-                self.redirect("/community")
+                self.redirect("/listCommunity")
         else:   
             self.redirect("/login")
 
@@ -119,8 +118,8 @@ class DeleteFollow(BlogHandler):
 
 class NumberOfFollowers(BlogHandler):
     def get(self):
-        cid = int(self.request.get('community_id'))
-        res = Follow.count_by_Community(cid)
+        community_id = int(self.request.get('community_id'))
+        res = Follow.count_by_Community(community_id)
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
             'Number': res
@@ -130,26 +129,26 @@ class NumberOfFollowers(BlogHandler):
     def post(self):
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
-            'Number': -1 
+            'Error': "Invalid Request" 
         }
         self.response.out.write(json.dumps(obj))
 
 class ListOfFollowers(BlogHandler):
     def get(self):
-        cid = int(self.request.get('community_id'))
-        res = Follow.list_by_Community(cid)
+        community_id = int(self.request.get('community_id'))
+        res = Follow.list_by_Community(community_id)
         lst = []
         for r in res:
             lst.append(User.by_id(r.user_id).name)
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
-            'UserHandlers': lst
+            'Users': lst
           } 
         self.response.out.write(json.dumps(obj))
                     
     def post(self):
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
-            'UserHandlers': ""
+            'Error': "Invalid Request"
         }
         self.response.out.write(json.dumps(obj))

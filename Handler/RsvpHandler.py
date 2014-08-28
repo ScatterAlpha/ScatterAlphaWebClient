@@ -77,7 +77,6 @@ class AddRsvp(BlogHandler):
                 'Result': "False"
               }             
         self.response.out.write(json.dumps(obj))
-        
             
     def post(self):
         self.redirect('/login')
@@ -99,8 +98,8 @@ class DeleteRsvp(BlogHandler):
             
 class NumberOfAttendees(BlogHandler):
    def get(self):
-       eid = int(self.request.get('event_id'))
-       res = Rsvp.count_by_event(eid)
+       event_id = int(self.request.get('event_id'))
+       res = Rsvp.count_by_event(event_id)
        self.response.headers['Content-Type'] = 'application/json'   
        obj = {
            'Number': res
@@ -110,7 +109,7 @@ class NumberOfAttendees(BlogHandler):
    def post(self):
        self.response.headers['Content-Type'] = 'application/json'   
        obj = {
-           'Number': -1 
+            'Error': "Invalid Request"
        }
        self.response.out.write(json.dumps(obj))
        
@@ -123,13 +122,13 @@ class ListOfAttendees(BlogHandler):
            lst.append(User.by_id(r.user_id).name)
        self.response.headers['Content-Type'] = 'application/json'   
        obj = {
-           'UserHandlers': lst
+           'Users': lst
          } 
        self.response.out.write(json.dumps(obj))
                    
    def post(self):
        self.response.headers['Content-Type'] = 'application/json'   
        obj = {
-           'UserHandlers': ""
+           'Error': "Invalid Request"
        }
        self.response.out.write(json.dumps(obj))
