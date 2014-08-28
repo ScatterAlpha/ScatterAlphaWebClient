@@ -64,40 +64,70 @@ def render_post(response, post):
 class AddRsvp(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'
-        user_id = int(self.request.get('user_id'))
-        event_id = int(self.request.get('event_id'))
-        if not Rsvp.by_user_event(user_id, event_id):
-            r = Rsvp.rsvp_entry(user_id, event_id)
-            r.put()              
-            obj = {
-                'Result': "True"
-              }
-        else:
-            obj = {
-                'Result': "False"
+        obj = {
+                'Error': "Invalid Request"
               }             
         self.response.out.write(json.dumps(obj))
-            
+        
     def post(self):
-        self.redirect('/login')
-
-class DeleteRsvp(BlogHandler):
-    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
         if self.user:
             user_id = int(self.request.get('user_id'))
             event_id = int(self.request.get('event_id'))
-            rsvp_entry = Rsvp.by_user_event(user_id, event_id)
-            db.delete(rsvp_entry)
-            self.redirect("/listEvent")
-        else:   
-            self.redirect("/listEvent")
+            if not Rsvp.by_user_event(user_id, event_id):
+                r = Rsvp.rsvp_entry(user_id, event_id)
+                r.put()              
+                obj = {
+                    'Result': "True"
+                  }
+            else:
+                obj = {
+                    'Result': "False"
+                  }            
+        else:
+            obj = {
+                'Result': "False"
+            }
+        self.response.out.write(json.dumps(obj)) 
+
+class DeleteRsvp(BlogHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))
 
     def post(self):
-        if not self.user:
-            self.redirect('/login')
+        self.response.headers['Content-Type'] = 'application/json'
+        if self.user:
+            user_id = int(self.request.get('user_id'))
+            event_id = int(self.request.get('event_id'))
+            if Rsvp.by_user_event(user_id, event_id):
+                r = Rsvp.rsvp_entry(user_id, event_id)
+                db.delete(r)              
+                obj = {
+                    'Result': "True"
+                  }
+            else:
+                obj = {
+                    'Result': "False"
+                  }             
+        else:
+            obj = {
+                'Result': "False"
+            }
+        self.response.out.write(json.dumps(obj))
             
 class NumberOfAttendees(BlogHandler):
    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))
+                   
+   def post(self):
        event_id = int(self.request.get('event_id'))
        res = Rsvp.count_by_event(event_id)
        self.response.headers['Content-Type'] = 'application/json'   
@@ -105,16 +135,16 @@ class NumberOfAttendees(BlogHandler):
            'Number': res
          } 
        self.response.out.write(json.dumps(obj))
-                   
-   def post(self):
-       self.response.headers['Content-Type'] = 'application/json'   
-       obj = {
-            'Error': "Invalid Request"
-       }
-       self.response.out.write(json.dumps(obj))
        
 class ListOfAttendees(BlogHandler):
    def get(self):
+       self.response.headers['Content-Type'] = 'application/json'
+       obj = {
+                'Error': "Invalid Request"
+              }             
+       self.response.out.write(json.dumps(obj))
+                   
+   def post(self):
        eid = int(self.request.get('event_id'))
        res = Rsvp.list_by_event(eid)
        lst = []
@@ -124,11 +154,4 @@ class ListOfAttendees(BlogHandler):
        obj = {
            'Users': lst
          } 
-       self.response.out.write(json.dumps(obj))
-                   
-   def post(self):
-       self.response.headers['Content-Type'] = 'application/json'   
-       obj = {
-           'Error': "Invalid Request"
-       }
        self.response.out.write(json.dumps(obj))

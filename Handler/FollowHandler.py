@@ -77,6 +77,13 @@ class BlogHandler(webapp2.RequestHandler):
 
 class AddFollow(BlogHandler):
     def get(self):
+       self.response.headers['Content-Type'] = 'application/json'
+       obj = {
+                'Error': "Invalid Request"
+              }             
+       self.response.out.write(json.dumps(obj))
+            
+    def post(self):
         self.response.headers['Content-Type'] = 'application/json'
         community_id = int(self.request.get('community_id'))
         logging.info(community_id)
@@ -93,31 +100,44 @@ class AddFollow(BlogHandler):
                 'Result': "False"
               }             
         self.response.out.write(json.dumps(obj))
-            
-    def post(self):
-        self.redirect('/login')
 
 class DeleteFollow(BlogHandler):
     def get(self):
-        if self.user:
-            community_id = int(self.request.get('community_id'))
-            logging.info(community_id)
-            user_id = int(self.request.get('user_id'))
-            logging.info(user_id)
-            r = Follow.search_by_userId_communityId(user_id, community_id)
-            logging.info(r)
-            if r:
-                db.delete(r)
-                self.redirect("/listCommunity")
-        else:   
-            self.redirect("/login")
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))
 
     def post(self):
-        if not self.user:
-            self.redirect('/login')
+        if self.user:
+            community_id = int(self.request.get('community_id'))
+            user_id = int(self.request.get('user_id'))
+            r = Follow.search_by_userId_communityId(user_id, community_id)
+            if r:
+                db.delete(r)
+                obj = {
+                    'Result': "True"
+                  }
+            else:
+                obj = {
+                    'Result': "False"
+                  }             
+        else:
+            obj = {
+                'Result': "False"
+            }
+        self.response.out.write(json.dumps(obj))
 
 class NumberOfFollowers(BlogHandler):
     def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))
+                    
+    def post(self):
         community_id = int(self.request.get('community_id'))
         res = Follow.count_by_Community(community_id)
         self.response.headers['Content-Type'] = 'application/json'   
@@ -125,16 +145,16 @@ class NumberOfFollowers(BlogHandler):
             'Number': res
           } 
         self.response.out.write(json.dumps(obj))
-                    
-    def post(self):
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-            'Error': "Invalid Request" 
-        }
-        self.response.out.write(json.dumps(obj))
 
 class ListOfFollowers(BlogHandler):
     def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = {
+                'Error': "Invalid Request"
+              }             
+        self.response.out.write(json.dumps(obj))
+                    
+    def post(self):
         community_id = int(self.request.get('community_id'))
         res = Follow.list_by_Community(community_id)
         lst = []
@@ -144,11 +164,4 @@ class ListOfFollowers(BlogHandler):
         obj = {
             'Users': lst
           } 
-        self.response.out.write(json.dumps(obj))
-                    
-    def post(self):
-        self.response.headers['Content-Type'] = 'application/json'   
-        obj = {
-            'Error': "Invalid Request"
-        }
         self.response.out.write(json.dumps(obj))
