@@ -14,8 +14,8 @@ from google.appengine.ext import db
 secret = 'fart'
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader('templates'),
-                               autoescape = True)
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader('templates'),
+                               autoescape=True)
 
 def render_str(template, **params):
     t = jinja_env.get_template(template)
@@ -78,69 +78,70 @@ class AddEvent(BlogHandler):
         if not self.user:
             self.redirect('/login')
         else:
-            try:
-                event_msg = self.request.get('event_message')
-                msg_type = self.request.get('message_type')
-                venue = self.request.get('venue')
-                room = self.request.get('room')
-                dt = self.request.get('date')
-                community_name = self.request.get('community_name')
-                category = self.request.get('category')
-                admin_id = self.user.key().id()
-                date = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M')
-                community_id = int(Community.by_Name(community_name))
-                self.response.headers['Content-Type'] = 'application/json'   
-               
-                if event_msg and msg_type and venue and room and date and community_name and category and admin_id:
-                    p = Event.event_entry(event_msg,msg_type,venue,room,date,community_id,category,admin_id)
-                    p.put()
-                    obj = {
+            event_msg = self.request.get('event_message')
+            msg_type = self.request.get('message_type')
+            venue = self.request.get('venue')
+            room = self.request.get('room')
+            dt = self.request.get('date')
+            community_name = self.request.get('community_name')
+            category = self.request.get('category')
+            admin_id = self.user.key().id()
+            date = datetime.datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
+            community_id = int(Community.by_Name(community_name))
+            self.response.headers['Content-Type'] = 'application/json'   
+            logging.info(event_msg)
+            logging.info(msg_type)
+            logging.info(venue)
+            logging.info(room)
+            logging.info(date)
+            logging.info(community_name)
+            logging.info(category)
+            logging.info(admin_id)
+            if event_msg and msg_type and venue and room and date and community_name and category and admin_id:
+                p = Event.event_entry(event_msg, msg_type, venue, room, date, community_id, category, admin_id)
+                p.put()
+                obj = {
                     'Result': "True",
                     'Error':""
-                        } 
-                    self.response.out.write(json.dumps(obj))
-                    self.redirect('/listEvent')
-                else:
-                    
-                    obj = {
-                    'Result': "True",
+                } 
+            else:
+                obj = {
+                    'Result': "False",
                     'Error':"Please fill all the fields!!"
-                        } 
-                    self.response.out.write(json.dumps(obj))
+                } 
+            self.response.out.write(json.dumps(obj))
                     
-            except:
-                e = sys.exc_info()[0]
-                self.redirect("/listEvent", error = e)
-                
-
 class DeleteEvent(BlogHandler):
     def get(self):
-        try:
-            if self.user:
-                event_id = int(self.request.get('event_id'))
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+              'Result': "False",
+              'Error':"Invalid Request"
+        } 
+        self.response.out.write(json.dumps(obj))
+
+    def post(self):
+        if self.user:
+            self.response.headers['Content-Type'] = 'application/json'  
+            event_id = int(self.request.get('event_id'))
+            if Event.by_id(event_id):
                 event = Event.by_id(event_id)
                 db.delete(event)
                 obj = {
-                    'Result': "True",
-                    'Error':""
-                        } 
-                self.response.out.write(json.dumps(obj))
-                self.redirect("/listEvent")
-            else:   
+                        'Result': "True",
+                        'Error':""
+                    }
+            else: 
                 obj = {
-                    'Result': "True",
-                    'Error':""
-                        } 
-                self.response.out.write(json.dumps(obj))
-                self.redirect("/login")
-        except:
-            e = sys.exc_info()[0]
-            error = e
-            self.render("listevents.html", error = error)
-
-    def post(self):
-        if not self.user:
-            self.redirect('/login')
+                        'Result': "False",
+                        'Error':"Entry does not exist"
+                    }
+        else:   
+            obj = {
+                    'Result': "False",
+                    'Error':"Invalid user"
+                } 
+        self.response.out.write(json.dumps(obj))
 
 
 class ListEvents(BlogHandler):
@@ -157,7 +158,7 @@ class ListEvents(BlogHandler):
         obj = []
         events = Event.all()
         for c in events:
-            logging.info("content "+c.content)
+            logging.info("content " + c.content)
             obj.append({
                     'id':str(c.key().id()),
                     'community_name': str(c.community_name),
@@ -177,41 +178,38 @@ class UpdateEvent(BlogHandler):
         self.response.out.write(json.dumps(obj))
 
     def post(self):
-        try:
-            if not self.user:
-                self.redirect('/login')
-            else:
-                event_id = self.request.get('event_id')
-                logging.info(event_id)
-                event =  Event.by_id(int(event_id))
-                logging.info(event)
-                event_msg = self.request.get('event_message')
-                msg_type = self.request.get('message_type')
-                venue = self.request.get('venue')
-                room = self.request.get('room')
-                dt = self.request.get('date')
-                community_name = self.request.get('community_name')
-                category = self.request.get('category')
-                admin_id = self.user.key().id()
-                date = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M')
-                community_id = int(Community.by_Name(community_name))            
+        if not self.user:
+            self.redirect('/login')
+        else:
+            self.response.headers['Content-Type'] = 'application/json'
+            event_id = self.request.get('event_id')
+            event = Event.by_id(int(event_id))
+            event_msg = self.request.get('event_message')
+            msg_type = self.request.get('message_type')
+            venue = self.request.get('venue')
+            room = self.request.get('room')
+            dt = self.request.get('date')
+            community_name = self.request.get('community_name')
+            category = self.request.get('category')
+            admin_id = self.user.key().id()
+            date = datetime.datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
+            community_id = int(Community.by_Name(community_name))            
                 
-                if event_msg and msg_type and venue and room and date and community_id and category and admin_id:
-                    setattr(event, 'event_message', event_msg)
-                    setattr(event, 'message_type', msg_type)
-                    setattr(event, 'venue', venue)
-                    setattr(event, 'room', room)
-                    setattr(event, 'date', date)
-                    setattr(event, 'community_id', community_id)
-                    event.put()
-                    obj = {
+            if event_msg and msg_type and venue and room and date and community_id and category and admin_id:
+                setattr(event, 'event_message', event_msg)
+                setattr(event, 'message_type', msg_type)
+                setattr(event, 'venue', venue)
+                setattr(event, 'room', room)
+                setattr(event, 'date', date)
+                setattr(event, 'community_id', community_id)
+                event.put()
+                obj = {
                     'Result': "True",
                     'Error':""
-                    } 
-                    self.response.out.write(json.dumps(obj))
-                    self.redirect('/listEvent')
-                else:
-                    error = "Please fill all the fields!!"
-                    
-        except Exception:
-            logging.info("There was an error")
+                } 
+            else:
+                obj = {
+                    'Result': "False",
+                    'Error':"Please fill all the fields"
+                }
+            self.response.out.write(json.dumps(obj))

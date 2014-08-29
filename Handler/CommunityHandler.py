@@ -66,53 +66,57 @@ class AddCommunity(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
-            'Result': "Invalid Request",
-            'Error':""
+            'Result': "False",
+            'Error':"Invalid Request"
         } 
         self.response.out.write(json.dumps(obj))
         
     def post(self):
         if not self.user:
-            self.redirect('/login')
-        community_name = self.request.get('community_name')
-        super_admin_id = self.user.key().id()
-        content = self.request.get('content')
-        self.response.headers['Content-Type'] = 'application/json'
-        if(Community.all_data().count(100) != 0):
-            if not (Community.by_Name(community_name) != 0):
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
+                'Result': "False",
+                'Error':"Invalid User"
+            } 
+            self.response.out.write(json.dumps(obj))
+        else:
+            community_name = self.request.get('community_name')
+            super_admin_id = self.user.key().id()
+            content = self.request.get('content')
+            self.response.headers['Content-Type'] = 'application/json'
+            if(Community.all_data().count(100) != 0):
+                if not (Community.by_Name(community_name) != 0):
+                    if community_name and content:
+                        p = Community.comm_entry(community_name, content, super_admin_id)
+                        p.put()
+                    else:
+                        obj = {
+                               'Result': "Community Name and Description, please!",
+                               
+                               }
+                        self.response.out.write(json.dumps(obj))
+                else:
+                     obj = {
+                               'Result': "Community already exists!!",
+                               
+                            }
+                     self.response.out.write(json.dumps(obj))
+                  
+            else:
                 if community_name and content:
                     p = Community.comm_entry(community_name, content, super_admin_id)
                     p.put()
-                    self.redirect('/listCommunity')
+                    obj = {
+                        'Result': "True",
+                        'Error':""
+                      } 
+                    self.response.out.write(json.dumps(obj))
                 else:
                     obj = {
-                           'Result': "Community Name and Description, please!",
-                           
-                           }
+                               'Result': "Community Name and Description, please!",
+                               
+                            }
                     self.response.out.write(json.dumps(obj))
-            else:
-                 obj = {
-                           'Result': "Community already exists!!",
-                           
-                        }
-                 self.response.out.write(json.dumps(obj))
-              
-        else:
-            if community_name and content:
-                p = Community.comm_entry(community_name, content, super_admin_id)
-                p.put()
-                obj = {
-                    'Result': "True",
-                    'Error':""
-                  } 
-                self.response.out.write(json.dumps(obj))
-                self.redirect('/listCommunity')
-            else:
-                obj = {
-                           'Result': "Community Name and Description, please!",
-                           
-                        }
-                self.response.out.write(json.dumps(obj))
 
 class DeleteCommunity(BlogHandler):
     def get(self):
@@ -127,26 +131,21 @@ class DeleteCommunity(BlogHandler):
             
 class UpdateCommunity(BlogHandler):
     def get(self):
-<<<<<<< HEAD
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
             'Result': "Invalid Request",
             'Error':""
         } 
         self.response.out.write(json.dumps(obj))
-=======
-        if self.user:
-            community_id = int(self.request.get('community_id'))
-            community_name = Community.search_by_ID(community_id)
-            logging.info(community_name.community_name)
-            self.render("updatecommunity.html", community_name = community_name.community_name, description = community_name.content)
-        else:
-            self.redirect("/login")
->>>>>>> origin/release1.0
 
     def post(self):
         if not self.user:
-            self.redirect('/login')
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
+                'Result': "False",
+                'Error':"Invalid User"
+            } 
+            self.response.out.write(json.dumps(obj))
         else:
             self.response.headers['Content-Type'] = 'application/json'
             community_name = self.request.get("community_name")
@@ -157,7 +156,7 @@ class UpdateCommunity(BlogHandler):
                     'Error':""
                   } 
             self.response.out.write(json.dumps(obj))
-            self.redirect("/listCommunity")
+            
 '''
 class ListCommunity(BlogHandler):
     def get(self):
@@ -170,7 +169,7 @@ class ListCommunity(BlogHandler):
     def post(self):
         if not self.user:
             self.redirect('/login')
-<<<<<<< HEAD
+
 '''            
 class ListCommunity(BlogHandler):
     def get(self):
@@ -201,6 +200,3 @@ class ListCommunity(BlogHandler):
 #             self.response.out.write(json.dumps(obj))
                     
 
-=======
-            
->>>>>>> origin/release1.0

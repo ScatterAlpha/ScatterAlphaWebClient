@@ -198,14 +198,13 @@ class UpdatePassword(BlogHandler):
         if not self.user:
             self.redirect("/login")
         else:    
-            old_password = self.request.get("old_password")
-            new_password =self.request.get("new_password")
-            cfm_password = self.request.get("cfm_password")
+            self.old_password = self.request.get("old_password")
+            self.new_password =self.request.get("new_password")
+            self.cfm_password = self.request.get("cfm_password")
             
-        params = dict(username = self.username,
-                      name = self.name)
+        params = dict()
         
-        if old_password != self.user.password:
+        if self.old_password != self.user.password:
             params['error_password'] = "That was not the old password"
             
         if not valid_password(self.new_password):
@@ -215,7 +214,8 @@ class UpdatePassword(BlogHandler):
             params['error_verify'] = "Your passwords didn't match."
             have_error = True
         else:    
-            u = User.register(self.username, new_password, self.name, self.permission)
+            u = User.by_username(self.user.username)
+            setattr(u, 'password', self.new_password)
             u.put()
             self.response.headers['Content-Type'] = 'application/json'   
             obj = {
@@ -306,3 +306,11 @@ class About(BlogHandler):
     def post(self):
         if not self.user:
             self.redirect('/login')
+        else:
+           self.response.headers['Content-Type'] = 'application/json'   
+           obj = {
+            'Result': " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim viverra vivamus.Hac dignissim venenatis aliquet pellentesque massa magna: maecenas sociis fermentum netus montes leo, torquent vitae.Vivamus gravida convallis...Risus massa rhoncus sapien.Dignissim ornare Pellentesque nec molestie mi, massa mauris cursus ridiculus, montes nisl ac ullamcorper facilisis!",
+            'Error':""
+            } 
+           self.response.out.write(json.dumps(obj))
+        
