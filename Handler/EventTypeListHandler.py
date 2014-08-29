@@ -71,7 +71,7 @@ class AddEventType(BlogHandler):
             
     def post(self):
         if self.user:
-            eventTypeList = self.request.get("eventTypeList")
+            eventTypeList = self.request.get("event_type_name")
             if not EventTypeList.by_event_type_name(eventTypeList):
                 etl = EventTypeList.event_type_list_entry(eventTypeList)
                 etl.put()              
@@ -117,10 +117,10 @@ class DeleteEventType(BlogHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json'
-        event_type_id = int(self.request.get('event_type_id'))
+        event_type_name = int(self.request.get('event_type_name'))
         if self.user:
-            if EventTypeList.by_id(event_type_id):
-                etl = EventTypeList.by_id(event_type_id)
+            if EventTypeList.by_id(event_type_name):
+                etl = EventTypeList.by_id(event_type_name)
                 db.delete(etl)              
                 obj = {
                     'Result': "True"
