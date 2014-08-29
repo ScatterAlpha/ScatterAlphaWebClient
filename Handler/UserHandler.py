@@ -86,7 +86,7 @@ class Signup(BlogHandler):
         dictlist = []
         self.username = self.request.get('username')
         self.password = self.request.get('password')
-        self.verify = self.request.get('verify')
+        self.cfmpassword = self.request.get('cfmpassword')
         self.name = self.request.get('name')
         self.permission = self.request.get('permission')
     
@@ -105,7 +105,7 @@ class Signup(BlogHandler):
         if not valid_password(self.password):
             params['error_password'] = "That wasn't a valid password."
             have_error = True
-        elif self.password != self.verify:
+        elif self.password != self.cfmpassword:
             params['error_verify'] = "Your passwords didn't match."
             have_error = True
     
@@ -155,6 +155,7 @@ class UpdatePassword(BlogHandler):
             self.old_password = self.request.get("old_password")
             self.new_password =self.request.get("new_password")
             self.cfm_password = self.request.get("cfm_password")
+            self.username = self.request.get('username')
             
         params = dict()
         self.response.headers['Content-Type'] = 'application/json'
@@ -224,7 +225,14 @@ class Logout(BlogHandler):
           } 
         self.response.out.write(json.dumps(obj))    
     def post(self):
-        self.logout()
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+            'Result': "True",
+            'Error':""
+          }
+        self.logout() 
+        self.response.out.write(json.dumps(obj))
+        
 
 
 class About(BlogHandler):
