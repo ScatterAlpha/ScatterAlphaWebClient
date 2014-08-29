@@ -147,8 +147,13 @@ class UpdateCommunity(BlogHandler):
         else:
             self.response.headers['Content-Type'] = 'application/json'
             community_name = self.request.get("community_name")
+<<<<<<< HEAD
+            content = self.request.get("content")
+            communities = Community.updateDescription(community_name, content)
+=======
             content = self.request.get("description")
             Community.updateDescription(community_name, content)
+>>>>>>> origin/release1.0
             obj = {
                     'Result': "True",
                     'Error':""
