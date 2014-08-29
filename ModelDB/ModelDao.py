@@ -186,6 +186,11 @@ class EventTypeList(db.Model):
         return EventTypeList.get_by_id(uid, parent = events_key())
     
     @classmethod
+    def by_event_type_name(cls, name):
+        u = User.all().filter('EventTypeName =', name).get()
+        return u
+    
+    @classmethod
     def all_data(cls):
         return EventTypeList.all()
     

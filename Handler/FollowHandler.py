@@ -86,9 +86,7 @@ class AddFollow(BlogHandler):
     def post(self):
         self.response.headers['Content-Type'] = 'application/json'
         community_id = int(self.request.get('community_id'))
-        logging.info(community_id)
         user_id = int(self.request.get('user_id'))
-        logging.info(user_id)
         if not Follow.by_User_Community(user_id, community_id):
             r = Follow.follow_entry(user_id, community_id)
             r.put()              
