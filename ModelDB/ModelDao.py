@@ -150,7 +150,7 @@ class Community(db.Model):
         return Community.all()
     
     @classmethod
-    def search_by_ID(cls, uid):
+    def by_id(cls, uid):
         return Community.get_by_id(uid, parent = community_key())
         
     @classmethod
@@ -220,6 +220,11 @@ class Event(db.Model):
         u = Event.all().filter('event_message =', event_message).get()
         return u
     
+    @classmethod
+    def by_venue_type(cls, room, venue, message_type):
+        u = Event.all().filter('message_type =', message_type).filter('room =', room).filter('venue =', venue).get()
+        return u
+        
     @classmethod
     def by_venue(cls, venue):
         u = Event.all().filter('venue =', venue).get()

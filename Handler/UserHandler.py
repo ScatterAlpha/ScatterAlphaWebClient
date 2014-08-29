@@ -72,53 +72,6 @@ class BlogHandler(webapp2.RequestHandler):
         uid = self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
 
-'''
-class Signup(BlogHandler):
-    def get(self):
-        self.render("signupform.html")
-
-    def post(self):
-        try:
-            have_error = False
-            self.username = self.request.get('username')
-            self.password = self.request.get('password')
-            self.verify = self.request.get('verify')
-            self.name = self.request.get('name')
-            self.permission = self.request.get('permission')
-    
-            params = dict(username = self.username,
-                          name = self.name)
-            
-            u = User.by_username(self.username)
-            if u:
-                params['error_username'] = 'That user already exists.';
-                have_error = True;
-    
-            if not valid_username(self.username):
-                params['error_username'] = "That's not a valid username."
-                have_error = True
-    
-            if not valid_password(self.password):
-                params['error_password'] = "That wasn't a valid password."
-                have_error = True
-            elif self.password != self.verify:
-                params['error_verify'] = "Your passwords didn't match."
-                have_error = True
-    
-            if not valid_name(self.name):
-                params['error_name'] = "That's not a valid name."
-                have_error = True
-                
-            if have_error:
-                self.render('signupform.html', **params)
-            else:
-                u = User.register(self.username, self.password, self.name, self.permission)
-                u.put()
-                self.redirect('/listEvent');
-        except:
-            e = sys.exc_info()[0]
-            self.redirect("/signup", error = e)
-'''            
 class Signup(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'   
@@ -129,60 +82,56 @@ class Signup(BlogHandler):
         self.response.out.write(json.dumps(obj))
 
     def post(self):
-        try:
-            have_error = False
-            dictlist = []
-            self.username = self.request.get('username')
-            self.password = self.request.get('password')
-            self.verify = self.request.get('verify')
-            self.name = self.request.get('name')
-            self.permission = self.request.get('permission')
+        have_error = False
+        dictlist = []
+        self.username = self.request.get('username')
+        self.password = self.request.get('password')
+        self.verify = self.request.get('verify')
+        self.name = self.request.get('name')
+        self.permission = self.request.get('permission')
     
-            params = dict(username = self.username,
+        params = dict(username = self.username,
                           name = self.name)
             
-            u = User.by_username(self.username)
-            if u:
-                params['error_username'] = 'That user already exists.';
-                have_error = True;
+        u = User.by_username(self.username)
+        if u:
+            params['error_username'] = 'That user already exists.';
+            have_error = True;
     
-            if not valid_username(self.username):
-                params['error_username'] = "That's not a valid username."
-                have_error = True
+        if not valid_username(self.username):
+            params['error_username'] = "That's not a valid username."
+            have_error = True
     
-            if not valid_password(self.password):
-                params['error_password'] = "That wasn't a valid password."
-                have_error = True
-            elif self.password != self.verify:
-                params['error_verify'] = "Your passwords didn't match."
-                have_error = True
+        if not valid_password(self.password):
+            params['error_password'] = "That wasn't a valid password."
+            have_error = True
+        elif self.password != self.verify:
+            params['error_verify'] = "Your passwords didn't match."
+            have_error = True
     
-            if not valid_name(self.name):
-                params['error_name'] = "That's not a valid name."
-                have_error = True
+        if not valid_name(self.name):
+            params['error_name'] = "That's not a valid name."
+            have_error = True
                 
-            if have_error:
-                for key, value in params.iteritems():
-                    temp = value
-                    dictlist.append(temp)
-                self.response.headers['Content-Type'] = 'application/json'   
-                obj = {
+        if have_error:
+            for key, value in params.iteritems():
+                temp = value
+                dictlist.append(temp)
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
                     'Result': "False",
                     'Error':dictlist
-                } 
-                self.response.out.write(json.dumps(obj))
-            else:
-                u = User.register(self.username, self.password, self.name, self.permission)
-                u.put()
-                self.response.headers['Content-Type'] = 'application/json'   
-                obj = {
+            } 
+            self.response.out.write(json.dumps(obj))
+        else:
+            u = User.register(self.username, self.password, self.name, self.permission)
+            u.put()
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
                     'Result': "True",
                     'Error':""
-                  } 
-                self.response.out.write(json.dumps(obj))
-        except:
-            e = sys.exc_info()[0]
-            self.redirect("/signup", error = e)
+            } 
+            self.response.out.write(json.dumps(obj))
             
 class UpdatePassword(BlogHandler):
     def get(self):
@@ -196,50 +145,46 @@ class UpdatePassword(BlogHandler):
             
     def post(self):
         if not self.user:
-            self.redirect("/login")
-        else:    
-            old_password = self.request.get("old_password")
-            new_password =self.request.get("new_password")
-            cfm_password = self.request.get("cfm_password")
-            
-        params = dict(username = self.username,
-                      name = self.name)
-        
-        if old_password != self.user.password:
-            params['error_password'] = "That was not the old password"
-            
-        if not valid_password(self.new_password):
-            params['error_password'] = "That wasn't a valid password."
-            have_error = True
-        elif self.new_password != self.cfm_password:
-            params['error_verify'] = "Your passwords didn't match."
-            have_error = True
-        else:    
-            u = User.register(self.username, new_password, self.name, self.permission)
-            u.put()
             self.response.headers['Content-Type'] = 'application/json'   
             obj = {
-                    'Result': "True",
-                    
-                  } 
+                'Result': "False",
+                'Error':"Invalid User"
+            } 
             self.response.out.write(json.dumps(obj))
-'''
+        else:    
+            self.old_password = self.request.get("old_password")
+            self.new_password =self.request.get("new_password")
+            self.cfm_password = self.request.get("cfm_password")
+            
+        params = dict()
+        self.response.headers['Content-Type'] = 'application/json'
+        if self.old_password != self.user.password:
+            params['error_password'] = "That was not the old password"
+            obj = {
+                    'Result': "False",
+                    'Error': params
+            }
+        if not valid_password(self.new_password):
+            params['error_password'] = "That wasn't a valid password."
+            obj = {
+                    'Result': "False",
+                    'Error': params
+            }
+        elif self.new_password != self.cfm_password:
+            params['error_verify'] = "Your passwords didn't match."
+            obj = {
+                    'Result': "False",
+                    'Error': params
+            }
+        else:    
+            u = User.by_username(self.username)
+            setattr(u, 'password', self.new_password)
+            u.put()   
+            obj = {
+                'Result': "True",
+            } 
+        self.response.out.write(json.dumps(obj))
 
-class Login(BlogHandler):
-    def get(self):
-        self.render('loginform.html')
-
-    def post(self):
-        username = self.request.get('username')
-        password = self.request.get('password')
-        u = User.login(username, password)
-        if u:
-            self.login(u)
-            self.redirect('/listEvent')
-        else:
-            msg = 'Invalid login'
-            self.render('loginform.html', error = msg)
-'''            
 class Login(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'   
@@ -269,30 +214,18 @@ class Login(BlogHandler):
                 'Error': msg
               } 
             self.response.out.write(json.dumps(obj))
-'''
-class Logout(BlogHandler):
-    def get(self):
-        self.logout()
-        self.redirect('/login')
-'''        
+
 class Logout(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
             'Result': "False",
-            'Error':""
+            'Error':"Invalid Request"
           } 
         self.response.out.write(json.dumps(obj))    
     def post(self):
         self.logout()
 
-class Welcome(BlogHandler):
-    def get(self):
-        username = self.request.get('username')
-        if valid_username(username):
-            self.render('welcome.html', username = username)
-        else:
-            self.redirect('/unit2/signup')
 
 class About(BlogHandler):
     def get(self):
@@ -305,4 +238,16 @@ class About(BlogHandler):
             
     def post(self):
         if not self.user:
-            self.redirect('/login')
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
+                'Result': "False",
+                'Error':"Invalid User"
+            } 
+            self.response.out.write(json.dumps(obj))
+        else:
+            self.response.headers['Content-Type'] = 'application/json'   
+            obj = {
+                'Result': "True",
+                'Message':"Lorem Ipsum"
+            } 
+            self.response.out.write(json.dumps(obj))

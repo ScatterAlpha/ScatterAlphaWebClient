@@ -82,11 +82,13 @@ class AddRsvp(BlogHandler):
                   }
             else:
                 obj = {
-                    'Result': "False"
+                    'Result': "False",
+                    'Error':"Already Exists"
                   }            
         else:
             obj = {
-                'Result': "False"
+                'Result': "False",
+                'Error':"Invalid User"
             }
         self.response.out.write(json.dumps(obj)) 
 
@@ -94,6 +96,7 @@ class DeleteRsvp(BlogHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'application/json'
         obj = {
+                'Result': "False",
                 'Error': "Invalid Request"
               }             
         self.response.out.write(json.dumps(obj))
@@ -104,35 +107,39 @@ class DeleteRsvp(BlogHandler):
             user_id = int(self.request.get('user_id'))
             event_id = int(self.request.get('event_id'))
             if Rsvp.by_user_event(user_id, event_id):
-                r = Rsvp.rsvp_entry(user_id, event_id)
+                r = Rsvp.by_user_event(user_id, event_id)
                 db.delete(r)              
                 obj = {
                     'Result': "True"
                   }
             else:
                 obj = {
-                    'Result': "False"
+                    'Result': "False",
+                    'Error':"Does not Exist"
                   }             
         else:
             obj = {
-                'Result': "False"
+                'Result': "False",
+                'Error':"Invalid User"
             }
         self.response.out.write(json.dumps(obj))
             
 class NumberOfAttendees(BlogHandler):
    def get(self):
-        self.response.headers['Content-Type'] = 'application/json'
-        obj = {
+       self.response.headers['Content-Type'] = 'application/json'
+       obj = {
+                'Result': "False",
                 'Error': "Invalid Request"
               }             
-        self.response.out.write(json.dumps(obj))
+       self.response.out.write(json.dumps(obj))
                    
    def post(self):
        event_id = int(self.request.get('event_id'))
        res = Rsvp.count_by_event(event_id)
        self.response.headers['Content-Type'] = 'application/json'   
        obj = {
-           'Number': res
+              'Result':"True",
+              'Number': res
          } 
        self.response.out.write(json.dumps(obj))
        
@@ -140,6 +147,7 @@ class ListOfAttendees(BlogHandler):
    def get(self):
        self.response.headers['Content-Type'] = 'application/json'
        obj = {
+                'Result': "False",
                 'Error': "Invalid Request"
               }             
        self.response.out.write(json.dumps(obj))
@@ -152,6 +160,7 @@ class ListOfAttendees(BlogHandler):
            lst.append(User.by_id(r.user_id).name)
        self.response.headers['Content-Type'] = 'application/json'   
        obj = {
-           'Users': lst
+              'Result':"True",
+              'Users': lst
          } 
        self.response.out.write(json.dumps(obj))
