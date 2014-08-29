@@ -190,8 +190,8 @@ class EventTypeList(db.Model):
         return EventTypeList.all()
     
     @classmethod
-    def by_event_type_name(cls, name):
-        u = User.all().filter('EventTypeName =', name).get()
+    def by_event_type_name(cls, event_type_name):
+        u = EventTypeList.all().filter('EventTypeName =', event_type_name).get()
         return u
     
     @classmethod

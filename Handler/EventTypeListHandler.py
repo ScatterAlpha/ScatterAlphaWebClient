@@ -117,7 +117,7 @@ class DeleteEventType(BlogHandler):
 
     def post(self):
         self.response.headers['Content-Type'] = 'application/json'
-        event_type_name = int(self.request.get('event_type_name'))
+        event_type_name = self.request.get('event_type_name')
         if self.user:
             if EventTypeList.by_event_type_name(event_type_name):
                 etl = EventTypeList.by_event_type_name(event_type_name)
@@ -131,6 +131,7 @@ class DeleteEventType(BlogHandler):
                   }             
         else:
             obj = {
-                'Result': "False"
+                'Result': "False",
+                'Error': "Invalid User"
             }
         self.response.out.write(json.dumps(obj))
