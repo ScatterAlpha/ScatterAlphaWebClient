@@ -105,7 +105,7 @@ class DeleteRsvp(BlogHandler):
             event_id = int(self.request.get('event_id'))
             if Rsvp.by_user_event(user_id, event_id):
                 r = Rsvp.rsvp_entry(user_id, event_id)
-                db.delete(r)          
+                db.delete(r)              
                 obj = {
                     'Result': "True"
                   }

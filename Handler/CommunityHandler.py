@@ -127,12 +127,14 @@ class DeleteCommunity(BlogHandler):
             
 class UpdateCommunity(BlogHandler):
     def get(self):
+<<<<<<< HEAD
         self.response.headers['Content-Type'] = 'application/json'   
         obj = {
             'Result': "Invalid Request",
             'Error':""
         } 
         self.response.out.write(json.dumps(obj))
+=======
         if self.user:
             community_id = int(self.request.get('community_id'))
             community_name = Community.search_by_ID(community_id)
@@ -140,6 +142,7 @@ class UpdateCommunity(BlogHandler):
             self.render("updatecommunity.html", community_name = community_name.community_name, description = community_name.content)
         else:
             self.redirect("/login")
+>>>>>>> origin/release1.0
 
     def post(self):
         if not self.user:
@@ -192,3 +195,12 @@ class ListCommunity(BlogHandler):
                     'content': str(c.content)
                 })
         self.response.out.write(json.dumps(obj))
+#     else:
+#             self.response.headers['Content-Type'] = 'application/json'   
+#             obj = {'Error':'Invalid user'} 
+#             self.response.out.write(json.dumps(obj))
+                    
+
+=======
+            
+>>>>>>> origin/release1.0
