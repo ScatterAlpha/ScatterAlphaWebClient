@@ -190,6 +190,11 @@ class EventTypeList(db.Model):
         return EventTypeList.all()
     
     @classmethod
+    def by_event_type_name(cls, name):
+        u = User.all().filter('EventTypeName =', name).get()
+        return u
+    
+    @classmethod
     def event_type_list_entry(cls, eventType):
         return EventTypeList(parent = events_key(),
                         EventTypeName = eventType)

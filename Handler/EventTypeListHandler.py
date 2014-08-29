@@ -72,7 +72,7 @@ class AddEventType(BlogHandler):
     def post(self):
         if self.user:
             eventTypeList = self.request.get("eventTypeList")
-            if not EventTypeList.event_type_list_entry(eventTypeList):
+            if not EventTypeList.by_event_type_name(eventTypeList):
                 etl = EventTypeList.event_type_list_entry(eventTypeList)
                 etl.put()              
                 obj = {
