@@ -92,9 +92,9 @@ class AddEvent(BlogHandler):
             dt = self.request.get('date')
             community_name = self.request.get('community_name')
             category = self.request.get('category')
-            admin_id = self.user.key().id()
+            admin_id = int(self.user.key().id())
             date = datetime.datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
-            community_id = int(Community.by_Name(community_name))   
+            community_id = str(Community.by_Name(community_name))   
                
             if event_msg and msg_type and venue and room and date and community_name and category and admin_id:
                 if not Event.by_venue_type(room, venue, msg_type):
@@ -159,9 +159,10 @@ class ListEvents(BlogHandler):
         self.response.out.write(json.dumps(obj))
 
     def post(self):
-        self.response.headers['Content-Type'] = 'application/json'   
+        self.response.headers['Content-Type'] = 'application/json'
+        community_id = str(self.request.get('community_id'))   
         obj = []
-        events = Event.all()
+        events = Event.by_Community(community_id)
         for c in events:
             obj.append({
                     'id':str(c.key().id()),
@@ -206,7 +207,7 @@ class UpdateEvent(BlogHandler):
             category = self.request.get('category')
             admin_id = self.user.key().id()
             date = datetime.datetime.strptime(dt, '%Y-%m-%d %H:%M:%S')
-            community_id = int(Community.by_Name(community_name))            
+            community_id = str(Community.by_Name(community_name))            
                 
             if event and event_msg and msg_type and venue and room and date and community_id and category and admin_id:
                 setattr(event, 'event_message', event_msg)

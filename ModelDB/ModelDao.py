@@ -206,7 +206,7 @@ class Event(db.Model):
     venue = db.StringProperty(required = True)
     room = db.StringProperty(required = True)
     date = db.DateTimeProperty(required = True)
-    community_id = db.IntegerProperty(required = True)
+    community_id = db.StringProperty(required = True)
     category = db.StringProperty(required = True)
     admin_id = db.IntegerProperty(required = True)
     created = db.DateTimeProperty(auto_now_add = True)
