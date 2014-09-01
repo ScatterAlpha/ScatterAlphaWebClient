@@ -111,10 +111,42 @@ class AddEvent(BlogHandler):
                     } 
             else:
                 obj = {
-                    'Result': "True",
+                    'Result': "False",
                     'Error':"Please fill all the fields!!"
                 } 
             self.response.out.write(json.dumps(obj))
+
+class GetEventById(BlogHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'   
+        obj = {
+              'Result': "False",
+              'Error':"Invalid Request"
+        } 
+        self.response.out.write(json.dumps(obj))
+
+    def post(self):
+        self.response.headers['Content-Type'] = 'application/json'
+            
+        event_id = int(self.request.get('event_id'))
+        if event_id:
+            event = Event.by_id(event_id)
+            obj = {
+                    'id':str(event.key().id()),
+                    'event_message': str(event.event_message),
+                    'message_type': str(event.message_type),
+                    'venue':str(event.venue),
+                    'room':str(event.room),
+                    'category': str(event.category),
+                    'community_id':str(event.community_id),
+                    'date':str(event.date)
+            } 
+        else:
+            obj = {
+                    'Result': "False",
+                    'Error':"Please fill all the fields!!"
+            } 
+        self.response.out.write(json.dumps(obj))
                     
 class DeleteEvent(BlogHandler):
     def get(self):
@@ -143,7 +175,7 @@ class DeleteEvent(BlogHandler):
                 }
         else:   
             obj = {
-                'Result': "True",
+                'Result': "False",
                 'Error':""
             } 
         self.response.out.write(json.dumps(obj))
@@ -227,4 +259,3 @@ class UpdateEvent(BlogHandler):
                     'Error':"Please fill all the fields!!"
                 }
             self.response.out.write(json.dumps(obj))
-                

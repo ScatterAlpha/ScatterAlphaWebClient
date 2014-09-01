@@ -58,6 +58,7 @@ class BlogHandler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         uid = self.read_secure_cookie('user_id')
+        logging.info("user id "+str(uid))
         self.user = uid and User.by_id(int(uid))
 
 

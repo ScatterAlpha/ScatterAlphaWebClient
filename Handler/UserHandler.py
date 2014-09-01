@@ -1,3 +1,4 @@
+import logging
 import re
 import sys
 import json
@@ -59,6 +60,7 @@ class BlogHandler(webapp2.RequestHandler):
 
     def read_secure_cookie(self, name):
         cookie_val = self.request.cookies.get(name)
+        logging.info("user_id login "+str(cookie_val))
         return cookie_val and check_secure_val(cookie_val)
 
     def login(self, user):
@@ -70,6 +72,7 @@ class BlogHandler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         uid = self.read_secure_cookie('user_id')
+        logging.info("user id "+str(uid))
         self.user = uid and User.by_id(int(uid))
 
 class Signup(BlogHandler):
@@ -204,6 +207,7 @@ class Login(BlogHandler):
             self.response.headers['Content-Type'] = 'application/json'   
             obj = {
                 'Result': "True",
+                'Id': str(u.key().id()),
                 'Error':""
               } 
             self.response.out.write(json.dumps(obj))
